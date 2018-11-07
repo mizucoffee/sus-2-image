@@ -6,4 +6,34 @@ SeaUrchinScore to Image for node
 
 ## Description
 
+\*.sus to Image.
+
 **Not supported: Bezier Curve**
+
+##Installation
+
+```
+$ yarn add sus-2-image
+```
+
+or
+
+```
+$ npm i sus-2-image
+```
+
+## How to use
+
+```
+const Sus2Image = require('sus-2-image'),
+  fs = require('fs')
+
+const sus = fs.readFileSync('example.sus','utf8')
+
+Sus2Image.getImages(sus)
+  .then(images =>
+    images.forEach((image,index) =>
+      fs.writeFileSync(`data${index}.png` , new Buffer(image.split(',')[1], 'base64'))
+    )
+  )
+```

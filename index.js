@@ -2,7 +2,7 @@ const SusAnalyzer = require('sus-analyzer')
 const { createCanvas, loadImage } = require('canvas')
 const fs = require('fs')
 
-module.exports.getImage = async raw_sus => {
+module.exports.getImages = async raw_sus => {
   const sus = SusAnalyzer.getData(raw_sus)
 
   const images = []
