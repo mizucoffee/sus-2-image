@@ -17,69 +17,69 @@ module.exports.getImages = async raw_sus => {
 
     const notes = {
       1: {
-        left: await loadImage('./asset/tap-left.png'),
-        center: await loadImage('./asset/tap-center.png'),
-        right: await loadImage('./asset/tap-right.png')
+        left: await loadImage(__dirname + '/asset/tap-left.png'),
+        center: await loadImage(__dirname + '/asset/tap-center.png'),
+        right: await loadImage(__dirname + '/asset/tap-right.png')
       },
       2: {
-        left: await loadImage('./asset/extap-left.png'),
-        center: await loadImage('./asset/extap-center.png'),
-        right: await loadImage('./asset/extap-right.png')
+        left: await loadImage(__dirname + '/asset/extap-left.png'),
+        center: await loadImage(__dirname + '/asset/extap-center.png'),
+        right: await loadImage(__dirname + '/asset/extap-right.png')
       },
       3: {
-        left: await loadImage('./asset/flick-left.png'),
-        center: await loadImage('./asset/flick-center.png'),
-        right: await loadImage('./asset/flick-right.png')
+        left: await loadImage(__dirname + '/asset/flick-left.png'),
+        center: await loadImage(__dirname + '/asset/flick-center.png'),
+        right: await loadImage(__dirname + '/asset/flick-right.png')
       },
       4: {
-        left: await loadImage('./asset/hell-left.png'),
-        center: await loadImage('./asset/hell-center.png'),
-        right: await loadImage('./asset/hell-right.png')
+        left: await loadImage(__dirname + '/asset/hell-left.png'),
+        center: await loadImage(__dirname + '/asset/hell-center.png'),
+        right: await loadImage(__dirname + '/asset/hell-right.png')
       },
       5: {
-        left: await loadImage('./asset/tap-left.png'),
-        center: await loadImage('./asset/tap-center.png'),
-        right: await loadImage('./asset/tap-right.png')
+        left: await loadImage(__dirname + '/asset/tap-left.png'),
+        center: await loadImage(__dirname + '/asset/tap-center.png'),
+        right: await loadImage(__dirname + '/asset/tap-right.png')
       },
       6: {
-        left: await loadImage('./asset/tap-left.png'),
-        center: await loadImage('./asset/tap-center.png'),
-        right: await loadImage('./asset/tap-right.png')
+        left: await loadImage(__dirname + '/asset/tap-left.png'),
+        center: await loadImage(__dirname + '/asset/tap-center.png'),
+        right: await loadImage(__dirname + '/asset/tap-right.png')
       },
     }
     const air = {
-      1: await loadImage('./asset/air-up.png'),
-      2: await loadImage('./asset/air-down.png'),
-      3: await loadImage('./asset/air-up-left.png'),
-      4: await loadImage('./asset/air-up-right.png'),
-      5: await loadImage('./asset/air-down-left.png'),
-      6: await loadImage('./asset/air-down-right.png'),
-      7: await loadImage('./asset/air-up.png'),
-      8: await loadImage('./asset/air-up-left.png'),
-      9: await loadImage('./asset/air-up-right.png'),
+      1: await loadImage(__dirname + '/asset/air-up.png'),
+      2: await loadImage(__dirname + '/asset/air-down.png'),
+      3: await loadImage(__dirname + '/asset/air-up-left.png'),
+      4: await loadImage(__dirname + '/asset/air-up-right.png'),
+      5: await loadImage(__dirname + '/asset/air-down-left.png'),
+      6: await loadImage(__dirname + '/asset/air-down-right.png'),
+      7: await loadImage(__dirname + '/asset/air-up.png'),
+      8: await loadImage(__dirname + '/asset/air-up-left.png'),
+      9: await loadImage(__dirname + '/asset/air-up-right.png'),
     }
     const LONG = {
       '2': {
-        left: await loadImage('./asset/hold-left.png'),
-        center: await loadImage('./asset/hold-center.png'),
-        step_center: await loadImage('./asset/hold-step-center.png'),
-        right: await loadImage('./asset/hold-right.png'),
+        left: await loadImage(__dirname + '/asset/hold-left.png'),
+        center: await loadImage(__dirname + '/asset/hold-center.png'),
+        step_center: await loadImage(__dirname + '/asset/hold-step-center.png'),
+        right: await loadImage(__dirname + '/asset/hold-right.png'),
       },
       '3': {
-        left: await loadImage('./asset/slide-left.png'),
-        center: await loadImage('./asset/slide-center.png'),
-        step_center: await loadImage('./asset/slide-step-center.png'),
-        right: await loadImage('./asset/slide-right.png'),
+        left: await loadImage(__dirname + '/asset/slide-left.png'),
+        center: await loadImage(__dirname + '/asset/slide-center.png'),
+        step_center: await loadImage(__dirname + '/asset/slide-step-center.png'),
+        right: await loadImage(__dirname + '/asset/slide-right.png'),
       },
       '4': {
-        left: await loadImage('./asset/air-action-left.png'),
-        center: await loadImage('./asset/air-action-center.png'),
-        right: await loadImage('./asset/air-action-right.png'),
+        left: await loadImage(__dirname + '/asset/air-action-left.png'),
+        center: await loadImage(__dirname + '/asset/air-action-center.png'),
+        right: await loadImage(__dirname + '/asset/air-action-right.png'),
       }
     }
 
-    const measure = await loadImage('./asset/measure.png')
-    const split = await loadImage('./asset/split.png')
+    const measure = await loadImage(__dirname + '/asset/measure.png')
+    const split = await loadImage(__dirname + '/asset/split.png')
 
     ctx.scale(1, -1)
     ctx.translate(0,8+a*-768 )
