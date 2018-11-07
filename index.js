@@ -141,12 +141,12 @@ module.exports.getImages = async raw_sus => {
             ctx.beginPath();
             ctx.moveTo(note.lane * 16 + 8 + ( note.width * 16 - 8 ) / 2, base + space * note.pos + 8);
             for(let i = 0; i < controls.length; i++) {
-              ctx.lineTo(controls[i].lane * 16 + 8 + ( controls[i].width * 16 - 8 ) / 2, base + space * controls[i].pos + 8);
+              ctx.lineTo(controls[i].lane * 16 + 8 + ( controls[i].width * 16 - 8 ) / 2, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8);
             }
             ctx.lineTo(note2.lane * 16 + 8 + ( note2.width * 16 - 8 ) / 2 ,base2 + space2 * note2.pos + 8);
             ctx.lineTo(note2.lane * 16 + 8 + note2.width * 16 - ( note2.width * 16 - 8 ) / 2,base2 + space2 * note2.pos + 8);
             for(let i = controls.length - 1; i >= 0; i--) {
-              ctx.lineTo(controls[i].lane * 16 + 8 + controls[i].width * 16 - ( controls[i].width * 16 - 8 ) / 2, base + space * controls[i].pos + 8);
+              ctx.lineTo(controls[i].lane * 16 + 8 + controls[i].width * 16 - ( controls[i].width * 16 - 8 ) / 2, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8);
             }
             ctx.lineTo(note.lane * 16 + 8 + note.width * 16 - ( note.width * 16 - 8 ) / 2,base + space * note.pos + 8);
             ctx.closePath();
@@ -173,6 +173,24 @@ module.exports.getImages = async raw_sus => {
         }
         ctx.fillStyle = gradient //ctx.createPattern(STRUT[long.type], "repeat-x")
         ctx.fill();
+
+        if(long.type == '3'){
+          ctx.beginPath();
+          ctx.moveTo(note.lane * 16 + 8 + ( note.width * 16 - 4 ) / 2, base + space * note.pos + 16);
+          for(let i = 0; i < controls.length; i++) {
+            ctx.lineTo(controls[i].lane * 16 + 8 + ( controls[i].width * 16 - 4 ) / 2, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8);
+          }
+          ctx.lineTo(note2.lane * 16 + 8 + ( note2.width * 16 - 4 ) / 2 ,base2 + space2 * note2.pos + 8);
+          ctx.lineTo(note2.lane * 16 + 8 + note2.width * 16 - ( note2.width * 16 - 4 ) / 2,base2 + space2 * note2.pos + 8);
+          for(let i = controls.length - 1; i >= 0; i--) {
+            ctx.lineTo(controls[i].lane * 16 + 8 + controls[i].width * 16 - ( controls[i].width * 16 - 4 ) / 2, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8);
+          }
+          ctx.lineTo(note.lane * 16 + 8 + note.width * 16 - ( note.width * 16 - 4 ) / 2,base + space * note.pos + 16);
+          ctx.closePath();
+
+          ctx.fillStyle = '#4cd5ff'
+          ctx.fill();
+        }
         if(note2.type == '2' || note2.type == '3' ) {
           before = null
           controls = []
@@ -213,12 +231,12 @@ module.exports.getImages = async raw_sus => {
               case '3':
               case '6':
               case '8':
-                ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 - 16 , base + space * note.pos + 20, note.width * 16, note.width * 8)
+                ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 - 8 , base + space * note.pos + 20, note.width * 16, note.width * 8)
                 break
               case '4':
               case '5':
               case '9':
-                ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 + 16 , base + space * note.pos + 20, note.width * 16, note.width * 8)
+                ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 + 8 , base + space * note.pos + 20, note.width * 16, note.width * 8)
                 break
             }
           })
