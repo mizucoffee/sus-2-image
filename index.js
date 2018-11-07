@@ -1,9 +1,81 @@
 const SusAnalyzer = require('sus-analyzer')
 const { createCanvas, loadImage } = require('canvas')
 const fs = require('fs')
+const path = require('path')
 
 module.exports.getImages = async raw_sus => {
   const sus = SusAnalyzer.getData(raw_sus)
+
+  const notes = {
+    1: {
+      left:   await loadImage(path.join(__dirname, 'asset', 'tap-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'tap-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'tap-right.png'))
+    },
+    2: {
+      left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
+    },
+    3: {
+      left:   await loadImage(path.join(__dirname, 'asset', 'flick-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'flick-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'flick-right.png'))
+    },
+    4: {
+      left:   await loadImage(path.join(__dirname, 'asset', 'hell-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'hell-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'hell-right.png'))
+    },
+    5: {
+      left:   await loadImage(path.join(__dirname, 'asset', 'tap-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'tap-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'tap-right.png'))
+    },
+    6: {
+      left:   await loadImage(path.join(__dirname, 'asset', 'tap-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'tap-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'tap-right.png'))
+    },
+    7: {
+      left:   await loadImage(path.join(__dirname, 'asset', 'air-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'air-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'air-right.png'))
+    }
+  }
+  const air = {
+    1: await loadImage(path.join(__dirname, 'asset', 'air-up.png')),
+    2: await loadImage(path.join(__dirname, 'asset', 'air-down.png')),
+    3: await loadImage(path.join(__dirname, 'asset', 'air-up-left.png')),
+    4: await loadImage(path.join(__dirname, 'asset', 'air-up-right.png')),
+    5: await loadImage(path.join(__dirname, 'asset', 'air-down-left.png')),
+    6: await loadImage(path.join(__dirname, 'asset', 'air-down-right.png')),
+    7: await loadImage(path.join(__dirname, 'asset', 'air-up.png')),
+    8: await loadImage(path.join(__dirname, 'asset', 'air-up-left.png')),
+    9: await loadImage(path.join(__dirname, 'asset', 'air-up-right.png'))
+  }
+  const LONG = {
+    '2': {
+      left:   await loadImage(path.join(__dirname, 'asset', 'hold-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'hold-center.png')),
+      step:   await loadImage(path.join(__dirname, 'asset', 'hold-step-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'hold-right.png'))
+    },
+    '3': {
+      left:   await loadImage(path.join(__dirname, 'asset', 'slide-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'slide-center.png')),
+      step:   await loadImage(path.join(__dirname, 'asset', 'slide-step-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'slide-right.png'))
+    },
+    '4': {
+      left:   await loadImage(path.join(__dirname, 'asset', 'air-action-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'air-action-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'air-action-right.png'))
+    }
+  }
+
+  const measure = await loadImage(path.join(__dirname, 'asset', 'measure.png'))
+  const split = await loadImage(path.join(__dirname, 'asset', 'split.png'))
 
   const images = []
   sus.measure++
@@ -15,76 +87,6 @@ module.exports.getImages = async raw_sus => {
     const canvas = createCanvas(272, 768 * (a - b) + 16)
     const ctx = canvas.getContext('2d')
 
-    const notes = {
-      1: {
-        left: await loadImage(__dirname + '/asset/tap-left.png'),
-        center: await loadImage(__dirname + '/asset/tap-center.png'),
-        right: await loadImage(__dirname + '/asset/tap-right.png')
-      },
-      2: {
-        left: await loadImage(__dirname + '/asset/extap-left.png'),
-        center: await loadImage(__dirname + '/asset/extap-center.png'),
-        right: await loadImage(__dirname + '/asset/extap-right.png')
-      },
-      3: {
-        left: await loadImage(__dirname + '/asset/flick-left.png'),
-        center: await loadImage(__dirname + '/asset/flick-center.png'),
-        right: await loadImage(__dirname + '/asset/flick-right.png')
-      },
-      4: {
-        left: await loadImage(__dirname + '/asset/hell-left.png'),
-        center: await loadImage(__dirname + '/asset/hell-center.png'),
-        right: await loadImage(__dirname + '/asset/hell-right.png')
-      },
-      5: {
-        left: await loadImage(__dirname + '/asset/tap-left.png'),
-        center: await loadImage(__dirname + '/asset/tap-center.png'),
-        right: await loadImage(__dirname + '/asset/tap-right.png')
-      },
-      6: {
-        left: await loadImage(__dirname + '/asset/tap-left.png'),
-        center: await loadImage(__dirname + '/asset/tap-center.png'),
-        right: await loadImage(__dirname + '/asset/tap-right.png')
-      },
-      7: {
-        left: await loadImage(__dirname + '/asset/air-left.png'),
-        center: await loadImage(__dirname + '/asset/air-center.png'),
-        right: await loadImage(__dirname + '/asset/air-right.png')
-      },
-    }
-    const air = {
-      1: await loadImage(__dirname + '/asset/air-up.png'),
-      2: await loadImage(__dirname + '/asset/air-down.png'),
-      3: await loadImage(__dirname + '/asset/air-up-left.png'),
-      4: await loadImage(__dirname + '/asset/air-up-right.png'),
-      5: await loadImage(__dirname + '/asset/air-down-left.png'),
-      6: await loadImage(__dirname + '/asset/air-down-right.png'),
-      7: await loadImage(__dirname + '/asset/air-up.png'),
-      8: await loadImage(__dirname + '/asset/air-up-left.png'),
-      9: await loadImage(__dirname + '/asset/air-up-right.png'),
-    }
-    const LONG = {
-      '2': {
-        left: await loadImage(__dirname + '/asset/hold-left.png'),
-        center: await loadImage(__dirname + '/asset/hold-center.png'),
-        step_center: await loadImage(__dirname + '/asset/hold-step-center.png'),
-        right: await loadImage(__dirname + '/asset/hold-right.png'),
-      },
-      '3': {
-        left: await loadImage(__dirname + '/asset/slide-left.png'),
-        center: await loadImage(__dirname + '/asset/slide-center.png'),
-        step_center: await loadImage(__dirname + '/asset/slide-step-center.png'),
-        right: await loadImage(__dirname + '/asset/slide-right.png'),
-      },
-      '4': {
-        left: await loadImage(__dirname + '/asset/air-action-left.png'),
-        center: await loadImage(__dirname + '/asset/air-action-center.png'),
-        right: await loadImage(__dirname + '/asset/air-action-right.png'),
-      }
-    }
-
-    const measure = await loadImage(__dirname + '/asset/measure.png')
-    const split = await loadImage(__dirname + '/asset/split.png')
 
     ctx.scale(1, -1)
     ctx.translate(0,8+a*-768 )
@@ -173,7 +175,10 @@ module.exports.getImages = async raw_sus => {
         let base = note.measure * 768
         const space = 768 / note.split
         ctx.drawImage(LONG[long.type].left   ,note.lane * 16 + 8 , base + space * note.pos)
-        ctx.drawImage(LONG[long.type].center ,note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
+        if(note.type == '1' || long.type == '4')
+          ctx.drawImage(LONG[long.type].center ,note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
+        else
+          ctx.drawImage(LONG[long.type].step   ,note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
         ctx.drawImage(LONG[long.type].right  ,note.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
       })
     })
@@ -272,3 +277,4 @@ module.exports.getImages = async raw_sus => {
   }
   return images
 }
+
