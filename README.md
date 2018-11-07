@@ -10,7 +10,7 @@ SeaUrchinScore to Image for node
 
 **Not supported: Bezier Curve**
 
-##Installation
+## Installation
 
 ```
 $ yarn add sus-2-image
