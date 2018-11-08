@@ -104,7 +104,6 @@ module.exports.getImages = async raw_sus => {
     const canvas = createCanvas(272, 768 * (a - b) + 16)
     const ctx = canvas.getContext('2d')
 
-
     ctx.scale(1, -1)
     ctx.translate(0,8+a*-768 )
 
@@ -136,7 +135,7 @@ module.exports.getImages = async raw_sus => {
         const base2 = note2.measure * 768
         const space2 = 768 / note2.split
 
-        if(note2.type == '4' || note2.type == '5') {
+        if(note2.type == '3' || note2.type == '4' || note2.type == '5') {
           before = note
           controls.push(note2)
           continue
@@ -154,18 +153,16 @@ module.exports.getImages = async raw_sus => {
         ctx.closePath();
 
         let gradient = ctx.createLinearGradient(0,base + space * note.pos + 16, 0 ,base2 + space2 * note2.pos);
+        gradient.addColorStop(0, '#ff4ce1bb');
+        gradient.addColorStop(1, '#ff4ce1bb');
         switch(long.type) {
           case '2':
-            gradient.addColorStop(0, '#ff4ce1bb');
             gradient.addColorStop(0.2, '#f6ff4cbb');
             gradient.addColorStop(0.8, '#f6ff4cbb');
-            gradient.addColorStop(1, '#ff4ce1bb');
             break
           case '3':
-            gradient.addColorStop(0, '#ff4ce1bb');
             gradient.addColorStop(0.2, '#4cd5ffbb');
             gradient.addColorStop(0.8, '#4cd5ffbb');
-            gradient.addColorStop(1, '#ff4ce1bb');
             break
         }
         ctx.fillStyle = gradient
@@ -181,7 +178,7 @@ module.exports.getImages = async raw_sus => {
           ctx.lineWidth = 4
           ctx.stroke()
         }
-        if(note2.type == '2' || note2.type == '3' ) {
+        if(note2.type == '2' ) {
           before = null
           controls = []
         }
@@ -226,7 +223,7 @@ module.exports.getImages = async raw_sus => {
         const base2 = note2.measure * 768
         const space2 = 768 / note2.split
 
-        if(note2.type == '4' || note2.type == '5') {
+        if(note2.type == '3' || note2.type == '4' || note2.type == '5') {
           before = note
           controls.push(note2)
           continue
@@ -241,7 +238,7 @@ module.exports.getImages = async raw_sus => {
         ctx.lineWidth = 8
         ctx.stroke()
 
-        if(note2.type == '2' || note2.type == '3' ) {
+        if(note2.type == '2') {
           before = null
           controls = []
         }
