@@ -552,9 +552,9 @@ strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
 
-sus-analyzer@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/sus-analyzer/-/sus-analyzer-1.3.0.tgz#3f6749f9baa3e02f34e474c3f8e803e0ed6503d5"
+sus-analyzer@^1.3.2:
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/sus-analyzer/-/sus-analyzer-1.3.2.tgz#11867064738eb439e31cc309f7cfd1d1dd9dee2f"
   dependencies:
     canvas "^2.0.1"
 
