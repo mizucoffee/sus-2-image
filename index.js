@@ -45,14 +45,14 @@ module.exports.getImages = async raw_sus => {
       right:  await loadImage(path.join(__dirname, 'asset', 'hell-right.png'))
     },
     5: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'tap-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'tap-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'tap-right.png'))
+      left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
     },
     6: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'tap-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'tap-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'tap-right.png'))
+      left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
+      center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
+      right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
     },
     7: {
       left:   await loadImage(path.join(__dirname, 'asset', 'air-left.png')),
@@ -122,11 +122,12 @@ module.exports.getImages = async raw_sus => {
       drawedMeasure = e.measure
     })
 
-    sus.longNotes.forEach(long => {
+    // HOLD/SLIDE ベース
+    sus.longNotes.filter(long => long.type != '4')
+      .forEach(long => {
       let before = null
       let controls = []
       for(let i = 0; i < long.notes.length - 1; i++){
-        if(long.type == '4') continue
         const note = before || long.notes[i]
         const base = note.measure * 768
         const space = 768 / note.split
@@ -141,75 +142,146 @@ module.exports.getImages = async raw_sus => {
           continue
         }
 
-        ctx.beginPath();
-        ctx.moveTo(note.lane * 16 + 8 + 4, base + space * note.pos + 16);
+        ctx.beginPath()
+        ctx.moveTo(note.lane * 16 + 8 + 4, base + space * note.pos + 16)
         for(let i = 0; i < controls.length; i++)
-          ctx.lineTo(controls[i].lane * 16 + 8 + 4, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8);
-        ctx.lineTo(note2.lane * 16 + 8 + 4,base2 + space2 * note2.pos);
-        ctx.lineTo(note2.lane * 16 + 8 + note2.width * 16 - 4,base2 + space2 * note2.pos);
+          ctx.lineTo(controls[i].lane * 16 + 8 + 4, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8)
+        ctx.lineTo(note2.lane * 16 + 8 + 4,base2 + space2 * note2.pos)
+        ctx.lineTo(note2.lane * 16 + 8 + note2.width * 16 - 4,base2 + space2 * note2.pos)
         for(let i = controls.length - 1; i >= 0; i--)
-          ctx.lineTo(controls[i].lane * 16 + 8 + controls[i].width * 16 - 4, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8);
-        ctx.lineTo(note.lane * 16 + 8 + note.width * 16 - 4,base + space * note.pos + 16);
-        ctx.closePath();
+          ctx.lineTo(controls[i].lane * 16 + 8 + controls[i].width * 16 - 4, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8)
+        ctx.lineTo(note.lane * 16 + 8 + note.width * 16 - 4,base + space * note.pos + 16)
+        ctx.closePath()
 
-        let gradient = ctx.createLinearGradient(0,base + space * note.pos + 16, 0 ,base2 + space2 * note2.pos);
-        gradient.addColorStop(0, '#ff4ce1bb');
-        gradient.addColorStop(1, '#ff4ce1bb');
+        let gradient = ctx.createLinearGradient(0,base + space * note.pos + 16, 0 ,base2 + space2 * note2.pos)
+        gradient.addColorStop(0, '#ff4ce1bb')
+        gradient.addColorStop(1, '#ff4ce1bb')
         switch(long.type) {
           case '2':
-            gradient.addColorStop(0.2, '#f6ff4cbb');
-            gradient.addColorStop(0.8, '#f6ff4cbb');
+            gradient.addColorStop(0.2, '#f6ff4cbb')
+            gradient.addColorStop(0.8, '#f6ff4cbb')
             break
           case '3':
-            gradient.addColorStop(0.2, '#4cd5ffbb');
-            gradient.addColorStop(0.8, '#4cd5ffbb');
+            gradient.addColorStop(0.2, '#4cd5ffbb')
+            gradient.addColorStop(0.8, '#4cd5ffbb')
             break
         }
         ctx.fillStyle = gradient
-        ctx.fill();
+        ctx.fill()
 
-        if(long.type == '3'){
-          ctx.beginPath();
-          ctx.moveTo(note.lane * 16 + 8 + ( note.width * 16 ) / 2, base + space * note.pos + 16);
-          for(let i = 0; i < controls.length; i++)
-            ctx.lineTo(controls[i].lane * 16 + 8 + ( controls[i].width * 16 ) / 2, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8);
-          ctx.lineTo(note2.lane * 16 + 8 + ( note2.width * 16 ) / 2 ,base2 + space2 * note2.pos);
-          ctx.strokeStyle = '#4cd5ff'
-          ctx.lineWidth = 4
-          ctx.stroke()
-        }
         if(note2.type == '2' ) {
           before = null
           controls = []
         }
       }
-      long.notes.forEach(note => {
-        if(!(long.type == 2 || long.type == 3 || long.type == 4)) return
-        if(note.type == '4' || note.type == '5') return
-        let base = note.measure * 768
-        const space = 768 / note.split
-        ctx.drawImage(LONG[long.type].left   ,note.lane * 16 + 8 , base + space * note.pos)
-        if(note.type == '1' || long.type == '4')
-          ctx.drawImage(LONG[long.type].center ,note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
-        else
-          ctx.drawImage(LONG[long.type].step   ,note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
-        ctx.drawImage(LONG[long.type].right  ,note.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
-      })
     })
 
-    sus.shortNoteLines.forEach(measure => {
-      if(measure.type != '1') return
+    // SLIDE 線
+    sus.longNotes.filter(long => long.type == '3')
+      .forEach(long => {
+        let before = null
+        let controls = []
+        for(let i = 0; i < long.notes.length - 1; i++){
+          const note = before || long.notes[i]
+          const base = note.measure * 768
+          const space = 768 / note.split
+
+          const note2 = long.notes[i+1]
+          const base2 = note2.measure * 768
+          const space2 = 768 / note2.split
+
+          if(note2.type == '3' || note2.type == '4' || note2.type == '5') {
+            before = note
+            controls.push(note2)
+            continue
+          }
+
+          ctx.beginPath()
+          ctx.moveTo(note.lane * 16 + 8 + ( note.width * 16 ) / 2, base + space * note.pos + 16)
+          for(let i = 0; i < controls.length; i++)
+            ctx.lineTo(controls[i].lane * 16 + 8 + ( controls[i].width * 16 ) / 2, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8)
+          ctx.lineTo(note2.lane * 16 + 8 + ( note2.width * 16 ) / 2 ,base2 + space2 * note2.pos)
+          ctx.strokeStyle = '#4cd5ff'
+          ctx.lineWidth = 4
+          ctx.stroke()
+
+          if(note2.type == '2' ) {
+            before = null
+            controls = []
+          }
+        }
+      })
+
+    // HOLD/SLIDE ノーツ
+    sus.longNotes.filter(long => long.type != '4').forEach(long => {  // AIR系でない
+      long.notes.filter(note => note.type != '4' && note.type != '5') // 不可視ノーツでない
+        .forEach(note => {
+          let base = note.measure * 768
+          const space = 768 / note.split
+          ctx.drawImage(LONG[long.type].left, note.lane * 16 + 8 , base + space * note.pos)
+          if(note.type == '1' || long.type == '4')
+            ctx.drawImage(LONG[long.type].center, note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
+          else
+            ctx.drawImage(LONG[long.type].step, note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
+          ctx.drawImage(LONG[long.type].right, note.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
+        })
+    })
+
+    // 地を這うTAP系
+    sus.shortNoteLines.filter(measure => measure.type == '1').forEach(measure => {
       const base = measure.measure * 768
       const space = 768 / measure.split
-
-      measure.data.forEach(note => {
-        if(note.type == '0') return
+      measure.data.filter(note => note.type != '0').forEach(note => {
         ctx.drawImage(notes[note.type].left   ,measure.lane * 16 + 8 , base + space * note.pos)
         ctx.drawImage(notes[note.type].center ,measure.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
         ctx.drawImage(notes[note.type].right  ,measure.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
       })
     })
 
+    // AIR
+    sus.shortNoteLines.filter(measure => measure.type == '5').forEach(measure => {
+      const base = measure.measure * 768
+      const space = 768 / measure.split
+
+      measure.data.filter(note => note.type != '0').forEach(note => {
+
+        const a = sus.shortNoteLines
+          .filter(m => m.type == '1')
+          .filter(m => m.lane == measure.lane)
+          .filter(m => m.measure == measure.measure)
+          .some(m => {
+            return 0 <  m.data
+              .filter(n => n.type != '0')
+              .filter(n => n.pos == note.pos)
+              .filter(n => n.width == note.width).length
+          })
+        const b = sus.longNotes
+          .filter(long => long.type != '4')
+          .some(long => {
+            return 0 < long.notes
+              .filter(n => n.type != '2' && n.type != '4' && n.type != '5')
+              .filter(n => n.measure == measure.measure)
+              .filter(n => n.lane == measure.lane)
+              .filter(n => n.pos == note.pos)
+              .filter(n => n.width == note.width).length
+          })
+
+        if ((!a && !b) || note.type == '7' || note.type == '8' || note.type == '9') {
+          ctx.drawImage(notes[7].left   ,measure.lane * 16 + 8 , base + space * note.pos)
+          ctx.drawImage(notes[7].center ,measure.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
+          ctx.drawImage(notes[7].right  ,measure.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
+        }
+
+        if(note.type == '1' || note.type == '2' || note.type == '7')
+          ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 , base + space * note.pos + 20, note.width * 16, note.width * 8)
+        if(note.type == '3' || note.type == '6' || note.type == '8')
+          ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 - 8 , base + space * note.pos + 20, note.width * 16, note.width * 8)
+        if(note.type == '4' || note.type == '5' || note.type == '9')
+          ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 + 8 , base + space * note.pos + 20, note.width * 16, note.width * 8)
+      })
+    })
+
+    // AIR線
     sus.longNotes.forEach(long => {
       let before = null
       let controls = []
@@ -229,11 +301,11 @@ module.exports.getImages = async raw_sus => {
           continue
         }
 
-        ctx.beginPath();
-        ctx.moveTo(note.lane * 16 + 8 + ( note.width * 16 ) / 2, base + space * note.pos + 8);
+        ctx.beginPath()
+        ctx.moveTo(note.lane * 16 + 8 + ( note.width * 16 ) / 2, base + space * note.pos + 8)
         for(let i = 0; i < controls.length; i++)
-          ctx.lineTo(controls[i].lane * 16 + 8 + ( controls[i].width * 16 ) / 2, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8);
-        ctx.lineTo(note2.lane * 16 + 8 + ( note2.width * 16 ) / 2 ,base2 + space2 * note2.pos + 8);
+          ctx.lineTo(controls[i].lane * 16 + 8 + ( controls[i].width * 16 ) / 2, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8)
+        ctx.lineTo(note2.lane * 16 + 8 + ( note2.width * 16 ) / 2 ,base2 + space2 * note2.pos + 8)
         ctx.strokeStyle = '#4cff51bb'
         ctx.lineWidth = 8
         ctx.stroke()
@@ -243,49 +315,20 @@ module.exports.getImages = async raw_sus => {
           controls = []
         }
       }
-      long.notes.forEach(note => {
-        if(long.type != 4) return
-        if(note.type == '4' || note.type == '5') return
-        let base = note.measure * 768
-        const space = 768 / note.split
-        if(note.type == '1') {
-          ctx.drawImage(notes[7].left   ,note.lane * 16 + 8 , base + space * note.pos)
-          ctx.drawImage(notes[7].center ,note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
-          ctx.drawImage(notes[7].right  ,note.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
-        } else {
-          ctx.drawImage(LONG[long.type].left   ,note.lane * 16 + 8 , base + space * note.pos)
-          ctx.drawImage(LONG[long.type].center ,note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
-          ctx.drawImage(LONG[long.type].right  ,note.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
-        }
-      })
+
+      // AIR ACTION系ノーツ
+      sus.longNotes.filter(long => long.type == '4')
+        .forEach(long => {
+          long.notes.filter(note => note.type != '1' && note.type != '4' && note.type != '5').forEach(note => {
+            let base = note.measure * 768
+            const space = 768 / note.split
+            ctx.drawImage(LONG[long.type].left   ,note.lane * 16 + 8 , base + space * note.pos)
+            ctx.drawImage(LONG[long.type].center ,note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
+            ctx.drawImage(LONG[long.type].right  ,note.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
+          })
+        })
     })
 
-    sus.shortNoteLines.forEach(measure => {
-      if(measure.type != '5') return
-      const base = measure.measure * 768
-      const space = 768 / measure.split
-
-      measure.data.forEach(note => {
-        if(note.type == '0') return
-        switch (note.type) {
-          case '1':
-          case '2':
-          case '7':
-            ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 , base + space * note.pos + 20, note.width * 16, note.width * 8)
-            break
-          case '3':
-          case '6':
-          case '8':
-            ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 - 8 , base + space * note.pos + 20, note.width * 16, note.width * 8)
-            break
-          case '4':
-          case '5':
-          case '9':
-            ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 + 8 , base + space * note.pos + 20, note.width * 16, note.width * 8)
-            break
-        }
-      })
-    })
 
     images.push(canvas.toDataURL())
   }
