@@ -1,7 +1,28 @@
 const SusAnalyzer = require('sus-analyzer')
+const jimp = require('jimp')
 const { createCanvas, loadImage } = require('canvas')
 const fs = require('fs')
 const path = require('path')
+
+module.exports.getMeasures = async sus => {
+  const images = (await module.exports.getImages(sus)).reverse()
+  const measures = []
+  for(let i = 0; i < images.length; i++) {
+    const image = await jimp.read(new Buffer(images[i].split(',')[1], 'base64'))
+    const m = (image.bitmap.height - 16) / 768
+    for(let j = 0; j < m; j++) {
+      console.log('read start')
+      const target = await jimp.read(new Buffer(images[i].split(',')[1], 'base64'))
+      console.log('read finish')
+      console.log('crop start')
+      target.crop( 0, j*768, 272, 768 )
+      console.log('crop finish')
+      console.log()
+      measures.push(await target.getBase64Async(jimp.MIME_PNG))
+    }
+  }
+  return measures
+}
 
 module.exports.getImages = async raw_sus => {
   const sus = SusAnalyzer.getData(raw_sus)

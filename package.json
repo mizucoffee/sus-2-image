@@ -8,6 +8,7 @@
   "private": false,
   "dependencies": {
     "canvas": "^2.0.1",
+    "jimp": "^0.5.6",
     "sus-analyzer": "^1.3.0"
   }
 }
