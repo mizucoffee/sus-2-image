@@ -1,26 +1,22 @@
 const SusAnalyzer = require('sus-analyzer')
-const jimp = require('jimp')
+const sharp = require('sharp')
 const { createCanvas, loadImage } = require('canvas')
 const fs = require('fs')
 const path = require('path')
 
 module.exports.getMeasures = async sus => {
   const images = (await module.exports.getImages(sus)).reverse()
-  const measures = []
+  let process = []
   for(let i = 0; i < images.length; i++) {
-    const image = await jimp.read(new Buffer(images[i].split(',')[1], 'base64'))
-    const m = (image.bitmap.height - 16) / 768
-    for(let j = 0; j < m; j++) {
-      console.log('read start')
-      const target = await jimp.read(new Buffer(images[i].split(',')[1], 'base64'))
-      console.log('read finish')
-      console.log('crop start')
-      target.crop( 0, j*768, 272, 768 )
-      console.log('crop finish')
-      console.log()
-      measures.push(await target.getBase64Async(jimp.MIME_PNG))
-    }
+    const image = await sharp(Buffer.from(images[i].split(',')[1], 'base64'))
+    const m = ((await image.metadata()).height - 16) / 768
+    for(let j = 0; j < m; j++)
+      process.push(image.extract({ left: 0, top: j*768, width: 272, height: 768 }).toBuffer())
   }
+  const buffers = await Promise.all(process)
+  const measures = []
+  for(let i = 0; i < buffers.length; i++)
+    measures.push("data:image/png;base64," + buffers[i].toString('base64'))
   return measures
 }
 
