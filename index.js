@@ -135,17 +135,23 @@ module.exports.getImages = async raw_sus => {
       .forEach(long => {
         ctx.beginPath()
         ctx.moveTo(long.notes[0].lane * 16 + 8 + 4, long.notes[0].measure * 768 + long.notes[0].position + 16)
-        for(let i = 1; i < long.notes.length; i++)
-          ctx.lineTo(long.notes[i].lane * 16 + 8 + 4, long.notes[i].measure * 768 + long.notes[i].position + 8)
-        for(let i = long.notes.length - 1; i >= 1; i--)
-          ctx.lineTo(long.notes[i].lane * 16 + 8 + long.notes[i].width * 16 - 4, long.notes[i].measure * 768 + long.notes[i].position + 8)
+        for(let i = 1; i < long.notes.length; i++) {
+          ctx.lineTo(long.notes[i].lane * 16 + 8 + 4, long.notes[i].measure * 768 + long.notes[i].position + ([2,3].includes(long.notes[i].note_type) ? 0 : 8))
+          if([2,3].includes(long.notes[i].note_type))
+            ctx.lineTo(long.notes[i].lane * 16 + 8 + 4, long.notes[i].measure * 768 + long.notes[i].position + 16)
+        }
+        for(let i = long.notes.length - 1; i >= 1; i--) {
+          ctx.lineTo(long.notes[i].lane * 16 + 8 + long.notes[i].width * 16 - 4, long.notes[i].measure * 768 + long.notes[i].position + ([2,3].includes(long.notes[i].note_type) ? 16 : 8))
+          if([2,3].includes(long.notes[i].note_type))
+            ctx.lineTo(long.notes[i].lane * 16 + 8 + long.notes[i].width * 16 - 4, long.notes[i].measure * 768 + long.notes[i].position )
+        }
         ctx.lineTo(long.notes[0].lane * 16 + 8 + long.notes[0].width * 16 - 4,long.notes[0].measure * 768 + long.notes[0].position + 16)
         ctx.closePath()
 
         let gradient = ctx.createLinearGradient(0,long.notes[0].measure * 768 + long.notes[0].position + 16, 0 ,long.notes[long.notes.length-1].measure * 768 + long.notes[long.notes.length-1].position)
         gradient.addColorStop(0, '#ff4ce1bb')
-        gradient.addColorStop(0.2, long.type == 2 ? '#f6ff4cbb' : long.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
-        gradient.addColorStop(0.8, long.type == 2 ? '#f6ff4cbb' : long.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
+        gradient.addColorStop(0.25, long.type == 2 ? '#f6ff4ccc' : long.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
+        gradient.addColorStop(0.75, long.type == 2 ? '#f6ff4ccc' : long.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
         gradient.addColorStop(1, '#ff4ce1bb')
         ctx.fillStyle = gradient
         ctx.fill()
@@ -156,8 +162,11 @@ module.exports.getImages = async raw_sus => {
       .forEach(long => {
         ctx.beginPath()
         ctx.moveTo(long.notes[0].lane * 16 + 8 + ( long.notes[0].width * 16 ) / 2, long.notes[0].measure * 768 + long.notes[0].position + 16)
-        for(let i = 1; i < long.notes.length; i++)
-          ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + 8)
+        for(let i = 1; i < long.notes.length; i++) {
+          ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + ([2,3].includes(long.notes[i].note_type) ? 0 : 8) )
+          if([2,3].includes(long.notes[i].note_type))
+            ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + 16 )
+        }
         ctx.strokeStyle = '#4cd5ff'
         ctx.lineWidth = 4
         ctx.stroke()
@@ -220,8 +229,11 @@ module.exports.getImages = async raw_sus => {
       .forEach(long => {
         ctx.beginPath()
         ctx.moveTo(long.notes[0].lane * 16 + 8 + ( long.notes[0].width * 16 ) / 2, long.notes[0].measure * 768 + long.notes[0].position + 16)
-        for(let i = 1; i < long.notes.length; i++)
-          ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + 8)
+        for(let i = 1; i < long.notes.length; i++) {
+          ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + ([2,3].includes(long.notes[i].note_type) ? 0 : 8) )
+          if([2,3].includes(long.notes[i].note_type))
+            ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + 16 )
+        }
         ctx.strokeStyle = '#4cff51bb'
         ctx.lineWidth = 8
         ctx.stroke()
