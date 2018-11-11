@@ -23,76 +23,89 @@ module.exports.getMeasures = async sus => {
 module.exports.getImages = async raw_sus => {
   const sus = SusAnalyzer.getData(raw_sus)
 
-  const notes = {
+  const image = {
     1: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'tap-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'tap-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'tap-right.png'))
+      1: {
+        left:   await loadImage(path.join(__dirname, 'asset', 'tap-left.png')),
+        center: await loadImage(path.join(__dirname, 'asset', 'tap-center.png')),
+        right:  await loadImage(path.join(__dirname, 'asset', 'tap-right.png'))
+      },
+      2: {
+        left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
+        center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
+        right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
+      },
+      3: {
+        left:   await loadImage(path.join(__dirname, 'asset', 'flick-left.png')),
+        center: await loadImage(path.join(__dirname, 'asset', 'flick-center.png')),
+        right:  await loadImage(path.join(__dirname, 'asset', 'flick-right.png'))
+      },
+      4: {
+        left:   await loadImage(path.join(__dirname, 'asset', 'hell-left.png')),
+        center: await loadImage(path.join(__dirname, 'asset', 'hell-center.png')),
+        right:  await loadImage(path.join(__dirname, 'asset', 'hell-right.png'))
+      },
+      5: {
+        left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
+        center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
+        right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
+      },
+      6: {
+        left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
+        center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
+        right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
+      },
+      7: {
+        left:   await loadImage(path.join(__dirname, 'asset', 'air-left.png')),
+        center: await loadImage(path.join(__dirname, 'asset', 'air-center.png')),
+        right:  await loadImage(path.join(__dirname, 'asset', 'air-right.png'))
+      }
     },
     2: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
-    },
-    3: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'flick-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'flick-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'flick-right.png'))
-    },
-    4: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'hell-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'hell-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'hell-right.png'))
-    },
-    5: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
-    },
-    6: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
-    },
-    7: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'air-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'air-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'air-right.png'))
-    }
-  }
-  const air = {
-    1: await loadImage(path.join(__dirname, 'asset', 'air-up.png')),
-    2: await loadImage(path.join(__dirname, 'asset', 'air-down.png')),
-    3: await loadImage(path.join(__dirname, 'asset', 'air-up-left.png')),
-    4: await loadImage(path.join(__dirname, 'asset', 'air-up-right.png')),
-    5: await loadImage(path.join(__dirname, 'asset', 'air-down-left.png')),
-    6: await loadImage(path.join(__dirname, 'asset', 'air-down-right.png')),
-    7: await loadImage(path.join(__dirname, 'asset', 'air-up.png')),
-    8: await loadImage(path.join(__dirname, 'asset', 'air-up-left.png')),
-    9: await loadImage(path.join(__dirname, 'asset', 'air-up-right.png'))
-  }
-  const LONG = {
-    '2': {
       left:   await loadImage(path.join(__dirname, 'asset', 'hold-left.png')),
       center: await loadImage(path.join(__dirname, 'asset', 'hold-center.png')),
       step:   await loadImage(path.join(__dirname, 'asset', 'hold-step-center.png')),
       right:  await loadImage(path.join(__dirname, 'asset', 'hold-right.png'))
     },
-    '3': {
+    3: {
       left:   await loadImage(path.join(__dirname, 'asset', 'slide-left.png')),
       center: await loadImage(path.join(__dirname, 'asset', 'slide-center.png')),
       step:   await loadImage(path.join(__dirname, 'asset', 'slide-step-center.png')),
       right:  await loadImage(path.join(__dirname, 'asset', 'slide-right.png'))
     },
-    '4': {
+    4: {
       left:   await loadImage(path.join(__dirname, 'asset', 'air-action-left.png')),
       center: await loadImage(path.join(__dirname, 'asset', 'air-action-center.png')),
       right:  await loadImage(path.join(__dirname, 'asset', 'air-action-right.png'))
+    },
+    5: {
+      1: await loadImage(path.join(__dirname, 'asset', 'air-up.png')),
+      2: await loadImage(path.join(__dirname, 'asset', 'air-down.png')),
+      3: await loadImage(path.join(__dirname, 'asset', 'air-up-left.png')),
+      4: await loadImage(path.join(__dirname, 'asset', 'air-up-right.png')),
+      5: await loadImage(path.join(__dirname, 'asset', 'air-down-left.png')),
+      6: await loadImage(path.join(__dirname, 'asset', 'air-down-right.png')),
+      7: await loadImage(path.join(__dirname, 'asset', 'air-up.png')),
+      8: await loadImage(path.join(__dirname, 'asset', 'air-up-left.png')),
+      9: await loadImage(path.join(__dirname, 'asset', 'air-up-right.png'))
     }
   }
 
   const measure = await loadImage(path.join(__dirname, 'asset', 'measure.png'))
   const split = await loadImage(path.join(__dirname, 'asset', 'split.png'))
+
+  sus.shortNotes = sus.shortNotes.map(note => {
+    note.position = 768 / sus.BEATs[note.measure] / 192 * note.position
+    return note
+  })
+
+  sus.longNotes = sus.longNotes.map(long => {
+    long.notes = long.notes.map(note => {
+      note.position = 768 / sus.BEATs[note.measure] / 192 * note.position
+      return note
+    })
+    return long
+  })
 
   const images = []
   sus.measure++
@@ -111,224 +124,121 @@ module.exports.getImages = async raw_sus => {
     for(let i = -1; i < sus.measure; i++) ctx.drawImage(measure, 0, i*768 + 8)
 
     // 拍線描画
-    let drawedMeasure = sus.measure
-    sus.BEATs.reverse().forEach(e => {
-      for(let i = e.measure; i < drawedMeasure; i++){
-        const startPos = i * 768
-        const space = 768 / e.beat
-        for(let j = 1; j < e.beat; j++)
-          ctx.drawImage(split, 0, startPos + space*j + 8)
-      }
-      drawedMeasure = e.measure
+    sus.BEATs.forEach((beat, index) => {
+      const base = 768 * index
+      for(let i = 1; i < beat; i++)
+        ctx.drawImage(split, 0, 768 * index + 768/beat*i + 8)
     })
 
     // HOLD/SLIDE ベース
-    sus.longNotes.filter(long => long.type != '4')
+    sus.longNotes.filter(long => long.type !== 4)
       .forEach(long => {
-      let before = null
-      let controls = []
-      for(let i = 0; i < long.notes.length - 1; i++){
-        const note = before || long.notes[i]
-        const base = note.measure * 768
-        const space = 768 / note.split
-
-        const note2 = long.notes[i+1]
-        const base2 = note2.measure * 768
-        const space2 = 768 / note2.split
-
-        if(note2.type == '3' || note2.type == '4' || note2.type == '5') {
-          before = note
-          controls.push(note2)
-          continue
-        }
-
         ctx.beginPath()
-        ctx.moveTo(note.lane * 16 + 8 + 4, base + space * note.pos + 16)
-        for(let i = 0; i < controls.length; i++)
-          ctx.lineTo(controls[i].lane * 16 + 8 + 4, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8)
-        ctx.lineTo(note2.lane * 16 + 8 + 4,base2 + space2 * note2.pos)
-        ctx.lineTo(note2.lane * 16 + 8 + note2.width * 16 - 4,base2 + space2 * note2.pos)
-        for(let i = controls.length - 1; i >= 0; i--)
-          ctx.lineTo(controls[i].lane * 16 + 8 + controls[i].width * 16 - 4, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8)
-        ctx.lineTo(note.lane * 16 + 8 + note.width * 16 - 4,base + space * note.pos + 16)
+        ctx.moveTo(long.notes[0].lane * 16 + 8 + 4, long.notes[0].measure * 768 + long.notes[0].position + 16)
+        for(let i = 1; i < long.notes.length; i++)
+          ctx.lineTo(long.notes[i].lane * 16 + 8 + 4, long.notes[i].measure * 768 + long.notes[i].position + 8)
+        for(let i = long.notes.length - 1; i >= 1; i--)
+          ctx.lineTo(long.notes[i].lane * 16 + 8 + long.notes[i].width * 16 - 4, long.notes[i].measure * 768 + long.notes[i].position + 8)
+        ctx.lineTo(long.notes[0].lane * 16 + 8 + long.notes[0].width * 16 - 4,long.notes[0].measure * 768 + long.notes[0].position + 16)
         ctx.closePath()
 
-        let gradient = ctx.createLinearGradient(0,base + space * note.pos + 16, 0 ,base2 + space2 * note2.pos)
+        let gradient = ctx.createLinearGradient(0,long.notes[0].measure * 768 + long.notes[0].position + 16, 0 ,long.notes[long.notes.length-1].measure * 768 + long.notes[long.notes.length-1].position)
         gradient.addColorStop(0, '#ff4ce1bb')
+        gradient.addColorStop(0.2, long.type == 2 ? '#f6ff4cbb' : long.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
+        gradient.addColorStop(0.8, long.type == 2 ? '#f6ff4cbb' : long.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
         gradient.addColorStop(1, '#ff4ce1bb')
-        switch(long.type) {
-          case '2':
-            gradient.addColorStop(0.2, '#f6ff4cbb')
-            gradient.addColorStop(0.8, '#f6ff4cbb')
-            break
-          case '3':
-            gradient.addColorStop(0.2, '#4cd5ffbb')
-            gradient.addColorStop(0.8, '#4cd5ffbb')
-            break
-        }
         ctx.fillStyle = gradient
         ctx.fill()
-
-        if(note2.type == '2' ) {
-          before = null
-          controls = []
-        }
-      }
-    })
+      })
 
     // SLIDE 線
-    sus.longNotes.filter(long => long.type == '3')
+    sus.longNotes.filter(long => long.type === 3)
       .forEach(long => {
-        let before = null
-        let controls = []
-        for(let i = 0; i < long.notes.length - 1; i++){
-          const note = before || long.notes[i]
-          const base = note.measure * 768
-          const space = 768 / note.split
-
-          const note2 = long.notes[i+1]
-          const base2 = note2.measure * 768
-          const space2 = 768 / note2.split
-
-          if(note2.type == '3' || note2.type == '4' || note2.type == '5') {
-            before = note
-            controls.push(note2)
-            continue
-          }
-
-          ctx.beginPath()
-          ctx.moveTo(note.lane * 16 + 8 + ( note.width * 16 ) / 2, base + space * note.pos + 16)
-          for(let i = 0; i < controls.length; i++)
-            ctx.lineTo(controls[i].lane * 16 + 8 + ( controls[i].width * 16 ) / 2, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8)
-          ctx.lineTo(note2.lane * 16 + 8 + ( note2.width * 16 ) / 2 ,base2 + space2 * note2.pos)
-          ctx.strokeStyle = '#4cd5ff'
-          ctx.lineWidth = 4
-          ctx.stroke()
-
-          if(note2.type == '2' ) {
-            before = null
-            controls = []
-          }
-        }
+        ctx.beginPath()
+        ctx.moveTo(long.notes[0].lane * 16 + 8 + ( long.notes[0].width * 16 ) / 2, long.notes[0].measure * 768 + long.notes[0].position + 16)
+        for(let i = 1; i < long.notes.length; i++)
+          ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + 8)
+        ctx.strokeStyle = '#4cd5ff'
+        ctx.lineWidth = 4
+        ctx.stroke()
       })
 
     // HOLD/SLIDE ノーツ
-    sus.longNotes.filter(long => long.type != '4').forEach(long => {  // AIR系でない
-      long.notes.filter(note => note.type != '4' && note.type != '5') // 不可視ノーツでない
+    sus.longNotes.filter(long => long.type !== 4).forEach(long => {  // AIR系でない
+      long.notes.filter(note => ![4,5].includes(note.note_type)) // 不可視ノーツでない
         .forEach(note => {
-          let base = note.measure * 768
-          const space = 768 / note.split
-          ctx.drawImage(LONG[long.type].left, note.lane * 16 + 8 , base + space * note.pos)
-          if(note.type == '1' || long.type == '4')
-            ctx.drawImage(LONG[long.type].center, note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
-          else
-            ctx.drawImage(LONG[long.type].step, note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
-          ctx.drawImage(LONG[long.type].right, note.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
+          const x_pos = note.lane * 16 + 8
+          const y_pos = note.measure * 768 + note.position
+
+          ctx.drawImage(image[long.type].left   ,x_pos                                             ,y_pos )
+          ctx.drawImage(image[long.type][[1,4].includes(note.note_type) ? 'center' : 'step'] ,x_pos + 4 ,y_pos ,note.width * 16 - 8 ,16 )
+          ctx.drawImage(image[long.type].right  ,x_pos + note.width * 16 - 4                       ,y_pos )
         })
     })
 
     // 地を這うTAP系
-    sus.shortNoteLines.filter(measure => measure.type == '1').forEach(measure => {
-      const base = measure.measure * 768
-      const space = 768 / measure.split
-      measure.data.filter(note => note.type != '0').forEach(note => {
-        ctx.drawImage(notes[note.type].left   ,measure.lane * 16 + 8 , base + space * note.pos)
-        ctx.drawImage(notes[note.type].center ,measure.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
-        ctx.drawImage(notes[note.type].right  ,measure.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
-      })
-    })
+    sus.shortNotes.filter(note => [1,5].includes(note.lane_type)).forEach(note => {
+      const x_pos = note.lane * 16 + 8
+      const y_pos = note.measure * 768 + note.position
+      // TODO: n拍子対応
+      const height = note.lane_type == 1 ? 16 : note.width * 8
+      switch (note.lane_type){
+        case 1:
+          ctx.drawImage(image[note.lane_type][note.note_type].left   ,x_pos                       ,y_pos , note.width * 16 , note.lane_type == 1 ? 16 : note.width * 8)
+          ctx.drawImage(image[note.lane_type][note.note_type].center ,x_pos + 4                   ,y_pos ,note.width * 16 - 8 ,16 )
+          ctx.drawImage(image[note.lane_type][note.note_type].right  ,x_pos + note.width * 16 - 4 ,y_pos )
+          break
+        case 5:
+          ctx.drawImage(image[note.lane_type][note.note_type] ,x_pos + ([1,2,7].includes(note.note_type) ? 0 : [3,6,8].includes(note.note_type) ? -8 : 8), y_pos + 20, note.width * 16, note.width * 8)
+          const short = sus.shortNotes
+            .filter(n => n.lane_type === 1)
+            .filter(n => n.lane === note.lane)
+            .filter(n => n.measure === note.measure)
+            .filter(n => n.position === note.position)
+            .filter(n => n.width === note.width).length
 
-    // AIR
-    sus.shortNoteLines.filter(measure => measure.type == '5').forEach(measure => {
-      const base = measure.measure * 768
-      const space = 768 / measure.split
+          const long = sus.longNotes
+            .filter(long => long.type !== 4)
+            .reduce((list, long) => list.concat(long.notes),[])
+            .filter(n => [1,3].includes(n.note_type))
+            .filter(n => n.lane === note.lane)
+            .filter(n => n.measure === note.measure)
+            .filter(n => n.position === note.position)
+            .filter(n => n.width === note.width).length
 
-      measure.data.filter(note => note.type != '0').forEach(note => {
+          if((0 < short || 0 < long) && ![7,8,9].includes(note.note_type)) break
 
-        const a = sus.shortNoteLines
-          .filter(m => m.type == '1')
-          .filter(m => m.lane == measure.lane)
-          .filter(m => m.measure == measure.measure)
-          .some(m => {
-            return 0 <  m.data
-              .filter(n => n.type != '0')
-              .filter(n => n.pos == note.pos)
-              .filter(n => n.width == note.width).length
-          })
-        const b = sus.longNotes
-          .filter(long => long.type != '4')
-          .some(long => {
-            return 0 < long.notes
-              .filter(n => n.type != '2' && n.type != '4' && n.type != '5')
-              .filter(n => n.measure == measure.measure)
-              .filter(n => n.lane == measure.lane)
-              .filter(n => n.pos == note.pos)
-              .filter(n => n.width == note.width).length
-          })
-
-        if ((!a && !b) || note.type == '7' || note.type == '8' || note.type == '9') {
-          ctx.drawImage(notes[7].left   ,measure.lane * 16 + 8 , base + space * note.pos)
-          ctx.drawImage(notes[7].center ,measure.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
-          ctx.drawImage(notes[7].right  ,measure.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
-        }
-
-        if(note.type == '1' || note.type == '2' || note.type == '7')
-          ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 , base + space * note.pos + 20, note.width * 16, note.width * 8)
-        if(note.type == '3' || note.type == '6' || note.type == '8')
-          ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 - 8 , base + space * note.pos + 20, note.width * 16, note.width * 8)
-        if(note.type == '4' || note.type == '5' || note.type == '9')
-          ctx.drawImage(air[note.type] ,measure.lane * 16 + 8 + 8 , base + space * note.pos + 20, note.width * 16, note.width * 8)
-      })
+          ctx.drawImage(image[1][7].left   ,x_pos                       ,y_pos )
+          ctx.drawImage(image[1][7].center ,x_pos + 4                   ,y_pos , note.width * 16 - 8 ,16 )
+          ctx.drawImage(image[1][7].right  ,x_pos + note.width * 16 - 4 ,y_pos )
+          break
+      }
     })
 
     // AIR線
-    sus.longNotes.forEach(long => {
-      let before = null
-      let controls = []
-      for(let i = 0; i < long.notes.length - 1; i++){
-        if(long.type != '4') continue
-        const note = before || long.notes[i]
-        const base = note.measure * 768
-        const space = 768 / note.split
-
-        const note2 = long.notes[i+1]
-        const base2 = note2.measure * 768
-        const space2 = 768 / note2.split
-
-        if(note2.type == '3' || note2.type == '4' || note2.type == '5') {
-          before = note
-          controls.push(note2)
-          continue
-        }
-
+    sus.longNotes.filter(long => long.type === 4)
+      .forEach(long => {
         ctx.beginPath()
-        ctx.moveTo(note.lane * 16 + 8 + ( note.width * 16 ) / 2, base + space * note.pos + 8)
-        for(let i = 0; i < controls.length; i++)
-          ctx.lineTo(controls[i].lane * 16 + 8 + ( controls[i].width * 16 ) / 2, controls[i].measure * 768 + 768 / controls[i].split * controls[i].pos + 8)
-        ctx.lineTo(note2.lane * 16 + 8 + ( note2.width * 16 ) / 2 ,base2 + space2 * note2.pos + 8)
+        ctx.moveTo(long.notes[0].lane * 16 + 8 + ( long.notes[0].width * 16 ) / 2, long.notes[0].measure * 768 + long.notes[0].position + 16)
+        for(let i = 1; i < long.notes.length; i++)
+          ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + 8)
         ctx.strokeStyle = '#4cff51bb'
         ctx.lineWidth = 8
         ctx.stroke()
+      })
 
-        if(note2.type == '2') {
-          before = null
-          controls = []
-        }
-      }
+    // AIR ACTIONノーツ
+    sus.longNotes.filter(long => long.type === 4).forEach(long => {
+      long.notes.filter(note => ![1,4,5].includes(note.note_type))
+        .forEach(note => {
+          const x_pos = note.lane * 16 + 8
+          const y_pos = note.measure * 768 + note.position
 
-      // AIR ACTION系ノーツ
-      sus.longNotes.filter(long => long.type == '4')
-        .forEach(long => {
-          long.notes.filter(note => note.type != '1' && note.type != '4' && note.type != '5').forEach(note => {
-            let base = note.measure * 768
-            const space = 768 / note.split
-            ctx.drawImage(LONG[long.type].left   ,note.lane * 16 + 8 , base + space * note.pos)
-            ctx.drawImage(LONG[long.type].center ,note.lane * 16 + 8 + 4 , base + space * note.pos, note.width * 16 - 8, 16)
-            ctx.drawImage(LONG[long.type].right  ,note.lane * 16 + 8 + note.width * 16 - 4, base + space * note.pos)
-          })
+          ctx.drawImage(image[long.type].left   ,x_pos                                             ,y_pos )
+          ctx.drawImage(image[long.type].center ,x_pos + 4 ,y_pos ,note.width * 16 - 8 ,16 )
+          ctx.drawImage(image[long.type].right  ,x_pos + note.width * 16 - 4                       ,y_pos )
         })
     })
-
 
     images.push(canvas.toDataURL())
   }
