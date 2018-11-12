@@ -9,6 +9,7 @@
   "dependencies": {
     "canvas": "^2.0.1",
     "sharp": "^0.21.0",
-    "sus-analyzer": "^2.0.0"
+    "simple-bezier": "mizucoffee/simple-bezier",
+    "sus-analyzer": "^2.0.4"
   }
 }
