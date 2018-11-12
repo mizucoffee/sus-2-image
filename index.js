@@ -147,8 +147,8 @@ module.exports.getImages = async raw_sus => {
           ctx.beginPath()
           ctx.moveTo(notes[0].lane * 16 + 8 + 4, notes[0].measure * 768 + notes[0].position + 16)
 
-          const n1 = notes.map(n => ([n.lane * 16 + 8 + 4, n.measure * 768 + n.position + ([2,3].includes(n.note_type) ? 0 : 16)]))
-          const n2 = notes.map(n => ([n.lane * 16 + 8 + n.width * 16 - 4, n.measure * 768 + n.position + ([2,3].includes(n.note_type) ? 0 : 16)]))
+          const n1 = notes.map(n => ([n.lane * 16 + 8 + 4, n.measure * 768 + n.position + (n.note_type === 2 ? 0 : 16)]))
+          const n2 = notes.map(n => ([n.lane * 16 + 8 + n.width * 16 - 4, n.measure * 768 + n.position + (n.note_type === 2 ? 0 : 16)]))
 
           if(n1.length > 2 && notes.some(n => n.note_type === 4)){
             const curve1 = bezier(n1, 100)
@@ -185,16 +185,34 @@ module.exports.getImages = async raw_sus => {
     // SLIDE 線
     sus.longNotes.filter(long => long.type === 3)
       .forEach(long => {
-        ctx.beginPath()
-        ctx.moveTo(long.notes[0].lane * 16 + 8 + ( long.notes[0].width * 16 ) / 2, long.notes[0].measure * 768 + long.notes[0].position + 16)
-        for(let i = 1; i < long.notes.length; i++) {
-          ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + ([2,3].includes(long.notes[i].note_type) ? 0 : 8) )
-          if([2,3].includes(long.notes[i].note_type))
-            ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + 16 )
-        }
-        ctx.strokeStyle = '#4cd5ff'
-        ctx.lineWidth = 4
-        ctx.stroke()
+        const longs = long.notes.reduce((list,long) => {
+          list[list.length - 1].push(long)
+          if(long.note_type !== 3) return list
+          list.push([])
+          list[list.length - 1].push(long)
+          return list
+        },[[]])
+
+        longs.forEach(notes => {
+          ctx.beginPath()
+          ctx.moveTo(notes[0].lane * 16 + 8 + ( notes[0].width * 16 ) / 2, notes[0].measure * 768 + notes[0].position + 16)
+          const n = notes.map(n => ([n.lane * 16 + 8 + ( n.width * 16 ) / 2, n.measure * 768 + n.position + (n.note_type === 2 ? 0 : 16)]))
+
+          if(n.length > 2 && notes.some(n => n.note_type === 4)){
+            const curve = bezier(n, 100)
+            for(let i = 1; i < curve.length; i++)      ctx.lineTo(curve[i][0], curve[i][1])
+            ctx.lineTo(notes[notes.length - 1].lane * 16 + 8 + ( notes[notes.length - 1].width * 16 ) / 2, notes[notes.length - 1].measure * 768 + notes[notes.length - 1].position )
+          } else {
+            for(let i = 1; i < notes.length; i++) {
+              ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2, notes[i].measure * 768 + notes[i].position + ([2,3].includes(notes[i].note_type) ? 0 : 8) )
+              if([2,3].includes(long.notes[i].note_type))
+                ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2, notes[i].measure * 768 + notes[i].position + 16 )
+            }
+          }
+          ctx.strokeStyle = '#4cd5ff'
+          ctx.lineWidth = 4
+          ctx.stroke()
+        })
       })
 
     // HOLD/SLIDE ノーツ
@@ -252,16 +270,34 @@ module.exports.getImages = async raw_sus => {
     // AIR線
     sus.longNotes.filter(long => long.type === 4)
       .forEach(long => {
-        ctx.beginPath()
-        ctx.moveTo(long.notes[0].lane * 16 + 8 + ( long.notes[0].width * 16 ) / 2, long.notes[0].measure * 768 + long.notes[0].position + 16)
-        for(let i = 1; i < long.notes.length; i++) {
-          ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + ([2,3].includes(long.notes[i].note_type) ? 0 : 8) )
-          if([2,3].includes(long.notes[i].note_type))
-            ctx.lineTo(long.notes[i].lane * 16 + 8 + ( long.notes[i].width * 16 ) / 2, long.notes[i].measure * 768 + long.notes[i].position + 16 )
-        }
-        ctx.strokeStyle = '#4cff51bb'
-        ctx.lineWidth = 8
-        ctx.stroke()
+        const longs = long.notes.reduce((list,long) => {
+          list[list.length - 1].push(long)
+          if(long.note_type !== 3) return list
+          list.push([])
+          list[list.length - 1].push(long)
+          return list
+        },[[]])
+
+        longs.forEach(notes => {
+          ctx.beginPath()
+          ctx.moveTo(notes[0].lane * 16 + 8 + ( notes[0].width * 16 ) / 2, notes[0].measure * 768 + notes[0].position + 16)
+          const n = notes.map(n => ([n.lane * 16 + 8 + ( n.width * 16 ) / 2, n.measure * 768 + n.position + (n.note_type === 2 ? 0 : 16)]))
+
+          if(n.length > 2 && notes.some(n => n.note_type === 4)){
+            const curve = bezier(n, 100)
+            for(let i = 1; i < curve.length; i++)      ctx.lineTo(curve[i][0], curve[i][1])
+            ctx.lineTo(notes[notes.length - 1].lane * 16 + 8 + ( notes[notes.length - 1].width * 16 ) / 2, notes[notes.length - 1].measure * 768 + notes[notes.length - 1].position )
+          } else {
+            for(let i = 1; i < notes.length; i++) {
+              ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2, notes[i].measure * 768 + notes[i].position + ([2,3].includes(notes[i].note_type) ? 0 : 8) )
+              if([2,3].includes(notes[i].note_type))
+                ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2, notes[i].measure * 768 + notes[i].position + 16 )
+            }
+          }
+          ctx.strokeStyle = '#4cff51bb'
+          ctx.lineWidth = 8
+          ctx.stroke()
+        })
       })
 
     // AIR ACTIONノーツ
