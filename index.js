@@ -133,85 +133,125 @@ module.exports.getImages = async raw_sus => {
 
     // HOLD/SLIDE ベース
     sus.longNotes.filter(long => long.type !== 4)
-      .forEach(long => {
+      .forEach(longNotes => {
 
-        const longs = long.notes.reduce((list,long) => {
-          list[list.length - 1].push(long)
-          if(long.note_type !== 3) return list
+        // 可視中継点で分割（色分けの為）
+        const colorBlocks = longNotes.notes.reduce((list,note) => {
+          list[list.length - 1].push(Object.assign({},note))
+          if(note.note_type !== 3) return list
           list.push([])
-          list[list.length - 1].push(long)
+          list[list.length - 1].push(Object.assign({},note))
           return list
         },[[]])
 
-        longs.forEach(notes => {
-          ctx.beginPath()
-          ctx.moveTo(notes[0].lane * 16 + 8 + 4, notes[0].measure * 768 + notes[0].position + 16)
+        colorBlocks.forEach(colorBlock => {
 
-          const n1 = notes.map(n => ([n.lane * 16 + 8 + 4, n.measure * 768 + n.position + (n.note_type === 2 ? 0 : 16)]))
-          const n2 = notes.map(n => ([n.lane * 16 + 8 + n.width * 16 - 4, n.measure * 768 + n.position + (n.note_type === 2 ? 0 : 16)]))
+          // 不可視中継点で分割（ベジェ判定の為）
+          const bases = colorBlock.reduce((list,note) => {
+            list[list.length - 1].push(Object.assign({},note))
+            if(![5].includes(note.note_type)) return list
+            list.push([])
+            list[list.length - 1].push(Object.assign({},note))
+            return list
+          },[[]])
 
-          if(n1.length > 2 && notes.some(n => n.note_type === 4)){
-            const curve1 = bezier(n1, 100)
-            const curve2 = bezier(n2, 100)
-            for(let i = 1; i < curve1.length; i++)      ctx.lineTo(curve1[i][0], curve1[i][1])
-            ctx.lineTo(notes[notes.length - 1].lane * 16 + 8 + 4, notes[notes.length - 1].measure * 768 + notes[notes.length - 1].position)
-            ctx.lineTo(notes[notes.length - 1].lane * 16 + 8 + notes[notes.length - 1].width * 16 - 4, notes[notes.length - 1].measure * 768 + notes[notes.length - 1].position + 16)
-            for(let i = curve2.length - 1; i >= 1; i--) ctx.lineTo(curve2[i][0], curve2[i][1])
-          } else {
-            for(let i = 1; i < notes.length; i++) {
-              ctx.lineTo(notes[i].lane * 16 + 8 + 4, notes[i].measure * 768 + notes[i].position + ([2,3].includes(notes[i].note_type) ? 0 : 8))
-              if([2,3].includes(notes[i].note_type))
-                ctx.lineTo(notes[i].lane * 16 + 8 + 4, notes[i].measure * 768 + notes[i].position + 16)
+          bases.forEach(notes => {
+            ctx.beginPath()
+
+            if([1,2,3].includes(notes[0].note_type)) notes[0].position += 8
+            if([1,2,3].includes(notes[notes.length - 1].note_type)) notes[notes.length - 1].position -= 8
+
+            if(notes.length > 2 && notes.some(n => n.note_type === 4)){
+              const n1 = notes.map(n => ([n.lane * 16 + 8 + 4               , n.measure * 768 + n.position + 8]))
+              const n2 = notes.map(n => ([n.lane * 16 + 8 + n.width * 16 - 4, n.measure * 768 + n.position + 8]))
+
+              const curve1 = bezier(n1, 100)
+              const curve2 = bezier(n2, 100)
+              ctx.moveTo(curve1[0][0], curve1[0][1])
+              for(let i = 1; i < curve1.length; i++)      ctx.lineTo(curve1[i][0], curve1[i][1])
+              for(let i = curve2.length - 1; i >= 0; i--) ctx.lineTo(curve2[i][0], curve2[i][1])
+            } else {
+              ctx.moveTo(notes[0].lane * 16 + 8 + 4, notes[0].measure * 768 + notes[0].position + 8)
+              for(let i = 1; i < notes.length; i++) {
+                ctx.lineTo(notes[i].lane * 16 + 8 + 4, notes[i].measure * 768 + notes[i].position + 8)
+                if([2,3].includes(notes[i].note_type)) ctx.lineTo(notes[i].lane * 16 + 8 + 4, notes[i].measure * 768 + notes[i].position + 8)
+              }
+              for(let i = notes.length - 1; i >= 1; i--) {
+                ctx.lineTo(notes[i].lane * 16 + 8 + notes[i].width * 16 - 4, notes[i].measure * 768 + notes[i].position + 8)
+                if([2,3].includes(notes[i].note_type)) ctx.lineTo(notes[i].lane * 16 + 8 + notes[i].width * 16 - 4, notes[i].measure * 768 + notes[i].position + 8)
+              }
+              ctx.lineTo(notes[0].lane * 16 + 8 + notes[0].width * 16 - 4,notes[0].measure * 768 + notes[0].position + 8)
             }
-            for(let i = notes.length - 1; i >= 1; i--) {
-              ctx.lineTo(notes[i].lane * 16 + 8 + notes[i].width * 16 - 4, notes[i].measure * 768 + notes[i].position + ([2,3].includes(notes[i].note_type) ? 16 : 8))
-              if([2,3].includes(notes[i].note_type))
-                ctx.lineTo(notes[i].lane * 16 + 8 + notes[i].width * 16 - 4, notes[i].measure * 768 + notes[i].position )
-            }
-          }
-          ctx.lineTo(notes[0].lane * 16 + 8 + notes[0].width * 16 - 4,notes[0].measure * 768 + notes[0].position + 16)
-          ctx.closePath()
+            ctx.closePath()
 
-          let gradient = ctx.createLinearGradient(0,notes[0].measure * 768 + notes[0].position + 16, 0 ,notes[notes.length-1].measure * 768 + notes[notes.length-1].position)
-          gradient.addColorStop(0, '#ff4ce1bb')
-          gradient.addColorStop(0.25, long.type == 2 ? '#f6ff4ccc' : long.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
-          gradient.addColorStop(0.75, long.type == 2 ? '#f6ff4ccc' : long.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
-          gradient.addColorStop(1, '#ff4ce1bb')
-          ctx.fillStyle = gradient
-          ctx.fill()
+            let gradient = ctx.createLinearGradient(0,colorBlock[0].measure * 768 + colorBlock[0].position + 16, 0 ,colorBlock[colorBlock.length-1].measure * 768 + colorBlock[colorBlock.length-1].position)
+            gradient.addColorStop(0, '#ff4ce1bb')
+            gradient.addColorStop(0.25, longNotes.type == 2 ? '#f6ff4ccc' : longNotes.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
+            gradient.addColorStop(0.75, longNotes.type == 2 ? '#f6ff4ccc' : longNotes.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
+            gradient.addColorStop(1, '#ff4ce1bb')
+            ctx.fillStyle = gradient
+            ctx.fill()
+
+          })
         })
       })
 
     // SLIDE 線
     sus.longNotes.filter(long => long.type === 3)
-      .forEach(long => {
-        const longs = long.notes.reduce((list,long) => {
-          list[list.length - 1].push(long)
-          if(long.note_type !== 3) return list
+      .forEach(longNotes => {
+
+        // 可視中継点で分割（色分けの為）
+        const colorBlocks = longNotes.notes.reduce((list,note) => {
+          list[list.length - 1].push(Object.assign({},note))
+          if(note.note_type !== 3) return list
           list.push([])
-          list[list.length - 1].push(long)
+          list[list.length - 1].push(Object.assign({},note))
           return list
         },[[]])
 
-        longs.forEach(notes => {
-          ctx.beginPath()
-          ctx.moveTo(notes[0].lane * 16 + 8 + ( notes[0].width * 16 ) / 2, notes[0].measure * 768 + notes[0].position + 16)
-          const n = notes.map(n => ([n.lane * 16 + 8 + ( n.width * 16 ) / 2, n.measure * 768 + n.position + (n.note_type === 2 ? 0 : 16)]))
+        colorBlocks.forEach(colorBlock => {
 
-          if(n.length > 2 && notes.some(n => n.note_type === 4)){
-            const curve = bezier(n, 100)
-            for(let i = 1; i < curve.length; i++)      ctx.lineTo(curve[i][0], curve[i][1])
-            ctx.lineTo(notes[notes.length - 1].lane * 16 + 8 + ( notes[notes.length - 1].width * 16 ) / 2, notes[notes.length - 1].measure * 768 + notes[notes.length - 1].position )
-          } else {
-            for(let i = 1; i < notes.length; i++) {
-              ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2, notes[i].measure * 768 + notes[i].position + ([2,3].includes(notes[i].note_type) ? 0 : 8) )
-              if([2,3].includes(long.notes[i].note_type))
-                ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2, notes[i].measure * 768 + notes[i].position + 16 )
+          // 不可視中継点で分割（ベジェ判定の為）
+          const bases = colorBlock.reduce((list,note) => {
+            list[list.length - 1].push(Object.assign({},note))
+            if(![5].includes(note.note_type)) return list
+            list.push([])
+            list[list.length - 1].push(Object.assign({},note))
+            return list
+          },[[]])
+
+          bases.forEach(notes => {
+            ctx.beginPath()
+
+            if([1,2,3].includes(notes[0].note_type)) notes[0].position += 8
+            if([1,2,3].includes(notes[notes.length - 1].note_type)) notes[notes.length - 1].position -= 8
+
+            if(notes.length > 2 && notes.some(n => n.note_type === 4)){
+              const n1 = notes.map(n => ([n.lane * 16 + 8 + ( n.width * 16 ) / 2 - 3, n.measure * 768 + n.position + 8]))
+              const n2 = notes.map(n => ([n.lane * 16 + 8 + ( n.width * 16 ) / 2 + 3, n.measure * 768 + n.position + 8]))
+
+              const curve1 = bezier(n1, 100)
+              const curve2 = bezier(n2, 100)
+              ctx.moveTo(curve1[0][0],curve1[0][1])
+              for(let i = 1; i < curve1.length; i++)      ctx.lineTo(curve1[i][0], curve1[i][1])
+              for(let i = curve2.length - 1; i >= 0; i--) ctx.lineTo(curve2[i][0], curve2[i][1])
+            } else {
+              ctx.moveTo(notes[0].lane * 16 + 8 + ( notes[0].width * 16 ) / 2 - 3, notes[0].measure * 768 + notes[0].position + 8)
+              for(let i = 1; i < notes.length; i++) {
+                ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2 - 3, notes[i].measure * 768 + notes[i].position + 8)
+                if([2,3].includes(notes[i].note_type)) ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2 - 3, notes[i].measure * 768 + notes[i].position + 8)
+              }
+              for(let i = notes.length - 1; i >= 1; i--) {
+                ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2 + 3, notes[i].measure * 768 + notes[i].position + 8)
+                if([2,3].includes(notes[i].note_type)) ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2 + 3, notes[i].measure * 768 + notes[i].position + 8)
+              }
+              ctx.lineTo(notes[0].lane * 16 + 8 + ( notes[0].width * 16 ) / 2 + 3,notes[0].measure * 768 + notes[0].position + 8)
             }
-          }
-          ctx.strokeStyle = '#4cd5ff'
-          ctx.lineWidth = 4
-          ctx.stroke()
+            ctx.closePath()
+            ctx.fillStyle = '#4cd5ff'
+            ctx.fill()
+
+          })
         })
       })
 
@@ -232,8 +272,8 @@ module.exports.getImages = async raw_sus => {
     sus.shortNotes.filter(note => [1,5].includes(note.lane_type)).forEach(note => {
       const x_pos = note.lane * 16 + 8
       const y_pos = note.measure * 768 + note.position
-      // TODO: n拍子対応
       const height = note.lane_type == 1 ? 16 : note.width * 8
+
       switch (note.lane_type){
         case 1:
           ctx.drawImage(image[note.lane_type][note.note_type].left   ,x_pos                       ,y_pos , note.width ,note.lane_type == 1 ? 16 : note.width * 8)
@@ -269,34 +309,59 @@ module.exports.getImages = async raw_sus => {
 
     // AIR線
     sus.longNotes.filter(long => long.type === 4)
-      .forEach(long => {
-        const longs = long.notes.reduce((list,long) => {
-          list[list.length - 1].push(long)
-          if(long.note_type !== 3) return list
+      .forEach(longNotes => {
+        // 可視中継点で分割（色分けの為）
+        const colorBlocks = longNotes.notes.reduce((list,note) => {
+          list[list.length - 1].push(Object.assign({},note))
+          if(note.note_type !== 3) return list
           list.push([])
-          list[list.length - 1].push(long)
+          list[list.length - 1].push(Object.assign({},note))
           return list
         },[[]])
 
-        longs.forEach(notes => {
-          ctx.beginPath()
-          ctx.moveTo(notes[0].lane * 16 + 8 + ( notes[0].width * 16 ) / 2, notes[0].measure * 768 + notes[0].position + 16)
-          const n = notes.map(n => ([n.lane * 16 + 8 + ( n.width * 16 ) / 2, n.measure * 768 + n.position + (n.note_type === 2 ? 0 : 16)]))
+        colorBlocks.forEach(colorBlock => {
 
-          if(n.length > 2 && notes.some(n => n.note_type === 4)){
-            const curve = bezier(n, 100)
-            for(let i = 1; i < curve.length; i++)      ctx.lineTo(curve[i][0], curve[i][1])
-            ctx.lineTo(notes[notes.length - 1].lane * 16 + 8 + ( notes[notes.length - 1].width * 16 ) / 2, notes[notes.length - 1].measure * 768 + notes[notes.length - 1].position )
-          } else {
-            for(let i = 1; i < notes.length; i++) {
-              ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2, notes[i].measure * 768 + notes[i].position + ([2,3].includes(notes[i].note_type) ? 0 : 8) )
-              if([2,3].includes(notes[i].note_type))
-                ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2, notes[i].measure * 768 + notes[i].position + 16 )
+          // 不可視中継点で分割（ベジェ判定の為）
+          const bases = colorBlock.reduce((list,note) => {
+            list[list.length - 1].push(Object.assign({},note))
+            if(![5].includes(note.note_type)) return list
+            list.push([])
+            list[list.length - 1].push(Object.assign({},note))
+            return list
+          },[[]])
+
+          bases.forEach(notes => {
+
+            ctx.beginPath()
+
+            if([1,2,3].includes(notes[0].note_type)) notes[0].position += 8
+            if([1,2,3].includes(notes[notes.length - 1].note_type)) notes[notes.length - 1].position -= 8
+
+            if(notes.length > 2 && notes.some(n => n.note_type === 4)){
+              const n1 = notes.map(n => ([n.lane * 16 + 8 + ( n.width * 16 ) / 2 - 3, n.measure * 768 + n.position + 8]))
+              const n2 = notes.map(n => ([n.lane * 16 + 8 + ( n.width * 16 ) / 2 + 3, n.measure * 768 + n.position + 8]))
+
+              const curve1 = bezier(n1, 100)
+              const curve2 = bezier(n2, 100)
+              ctx.moveTo(curve1[0][0], curve1[0][1])
+              for(let i = 1; i < curve1.length; i++)      ctx.lineTo(curve1[i][0], curve1[i][1])
+              for(let i = curve2.length - 1; i >= 0; i--) ctx.lineTo(curve2[i][0], curve2[i][1])
+            } else {
+              ctx.moveTo(notes[0].lane * 16 + 8 + ( notes[0].width * 16 ) / 2 - 3, notes[0].measure * 768 + notes[0].position + 8)
+              for(let i = 1; i < notes.length; i++) {
+                ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2 - 3, notes[i].measure * 768 + notes[i].position + 8)
+                if([2,3].includes(notes[i].note_type)) ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2 - 3, notes[i].measure * 768 + notes[i].position + 8)
+              }
+              for(let i = notes.length - 1; i >= 1; i--) {
+                ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2 + 3, notes[i].measure * 768 + notes[i].position + 8)
+                if([2,3].includes(notes[i].note_type)) ctx.lineTo(notes[i].lane * 16 + 8 + ( notes[i].width * 16 ) / 2 + 3, notes[i].measure * 768 + notes[i].position + 8)
+              }
+              ctx.lineTo(notes[0].lane * 16 + 8 + ( notes[0].width * 16 ) / 2 + 3,notes[0].measure * 768 + notes[0].position + 8)
             }
-          }
-          ctx.strokeStyle = '#4cff51bb'
-          ctx.lineWidth = 8
-          ctx.stroke()
+            ctx.closePath()
+            ctx.fillStyle = '#4cff51bb'
+            ctx.fill()
+          })
         })
       })
 

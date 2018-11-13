@@ -8,8 +8,6 @@ SeaUrchinScore to Image for node
 
 \*.sus to Image.
 
-**Not supported: Bezier Curve**
-
 ## Installation
 
 ```
