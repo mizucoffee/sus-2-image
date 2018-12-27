@@ -8,6 +8,8 @@
   "private": false,
   "dependencies": {
     "canvas": "^2.0.1",
+    "d3": "^5.7.0",
+    "jsdom": "^13.1.0",
     "sharp": "^0.21.0",
     "simple-bezier": "mizucoffee/simple-bezier",
     "sus-analyzer": "^2.0.4"

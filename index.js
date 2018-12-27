@@ -4,6 +4,9 @@ const sharp = require('sharp')
 const { createCanvas, loadImage } = require('canvas')
 const fs = require('fs')
 const path = require('path')
+const jsdom = require('jsdom')
+const { JSDOM } = jsdom
+const d3 = require('d3')
 
 module.exports.getMeasures = async sus => {
   const images = (await module.exports.getImages(sus)).reverse()
@@ -22,78 +25,33 @@ module.exports.getMeasures = async sus => {
 }
 
 module.exports.getImages = async raw_sus => {
+
   const sus = SusAnalyzer.getData(raw_sus)
 
-  const image = {
-    1: {
-      1: {
-        left:   await loadImage(path.join(__dirname, 'asset', 'tap-left.png')),
-        center: await loadImage(path.join(__dirname, 'asset', 'tap-center.png')),
-        right:  await loadImage(path.join(__dirname, 'asset', 'tap-right.png'))
-      },
-      2: {
-        left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
-        center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
-        right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
-      },
-      3: {
-        left:   await loadImage(path.join(__dirname, 'asset', 'flick-left.png')),
-        center: await loadImage(path.join(__dirname, 'asset', 'flick-center.png')),
-        right:  await loadImage(path.join(__dirname, 'asset', 'flick-right.png'))
-      },
-      4: {
-        left:   await loadImage(path.join(__dirname, 'asset', 'hell-left.png')),
-        center: await loadImage(path.join(__dirname, 'asset', 'hell-center.png')),
-        right:  await loadImage(path.join(__dirname, 'asset', 'hell-right.png'))
-      },
-      5: {
-        left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
-        center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
-        right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
-      },
-      6: {
-        left:   await loadImage(path.join(__dirname, 'asset', 'extap-left.png')),
-        center: await loadImage(path.join(__dirname, 'asset', 'extap-center.png')),
-        right:  await loadImage(path.join(__dirname, 'asset', 'extap-right.png'))
-      },
-      7: {
-        left:   await loadImage(path.join(__dirname, 'asset', 'air-left.png')),
-        center: await loadImage(path.join(__dirname, 'asset', 'air-center.png')),
-        right:  await loadImage(path.join(__dirname, 'asset', 'air-right.png'))
-      }
-    },
-    2: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'hold-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'hold-center.png')),
-      step:   await loadImage(path.join(__dirname, 'asset', 'hold-step-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'hold-right.png'))
-    },
-    3: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'slide-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'slide-center.png')),
-      step:   await loadImage(path.join(__dirname, 'asset', 'slide-step-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'slide-right.png'))
-    },
-    4: {
-      left:   await loadImage(path.join(__dirname, 'asset', 'air-action-left.png')),
-      center: await loadImage(path.join(__dirname, 'asset', 'air-action-center.png')),
-      right:  await loadImage(path.join(__dirname, 'asset', 'air-action-right.png'))
-    },
-    5: {
-      1: await loadImage(path.join(__dirname, 'asset', 'air-up.png')),
-      2: await loadImage(path.join(__dirname, 'asset', 'air-down.png')),
-      3: await loadImage(path.join(__dirname, 'asset', 'air-up-left.png')),
-      4: await loadImage(path.join(__dirname, 'asset', 'air-up-right.png')),
-      5: await loadImage(path.join(__dirname, 'asset', 'air-down-left.png')),
-      6: await loadImage(path.join(__dirname, 'asset', 'air-down-right.png')),
-      7: await loadImage(path.join(__dirname, 'asset', 'air-up.png')),
-      8: await loadImage(path.join(__dirname, 'asset', 'air-up-left.png')),
-      9: await loadImage(path.join(__dirname, 'asset', 'air-up-right.png'))
-    }
-  }
+  const height = 768 * sus.measure + 32
+  let dom = new JSDOM('<html><body></body></html>')
 
-  const measure = await loadImage(path.join(__dirname, 'asset', 'measure.png'))
-  const split = await loadImage(path.join(__dirname, 'asset', 'split.png'))
+  d3.select(dom.window.document.body)
+    .append('svg')
+    .attr('xmlns', 'http://www.w3.org/2000/svg')
+    .attr('version', '1.1')
+    .attr('id', 'score')
+    .attr('width', '272px')
+    .attr('height', `${height}px`)
+
+  // グラデーション定義
+  d3.select(dom.window.document.body.querySelector('#score')).append('linearGradient').attr('id', 'hold').attr('x1', '0').attr('y1', '0').attr('x2', '0').attr('y2', '1')
+  d3.select(dom.window.document.body.querySelector('#score')).append('linearGradient').attr('id', 'slide').attr('x1', '0').attr('y1', '0').attr('x2', '0').attr('y2', '1')
+
+  d3.select(dom.window.document.body.querySelector('#hold' )).append('stop').attr('offset', '0%'  ).attr('stop-color', '#ff4ce1').attr('stop-opacity', '0.7')
+  d3.select(dom.window.document.body.querySelector('#hold' )).append('stop').attr('offset', '25%' ).attr('stop-color', '#f6ff4c').attr('stop-opacity', '0.7')
+  d3.select(dom.window.document.body.querySelector('#hold' )).append('stop').attr('offset', '75%' ).attr('stop-color', '#f6ff4c').attr('stop-opacity', '0.7')
+  d3.select(dom.window.document.body.querySelector('#hold' )).append('stop').attr('offset', '100%').attr('stop-color', '#ff4ce1').attr('stop-opacity', '0.7')
+  d3.select(dom.window.document.body.querySelector('#slide')).append('stop').attr('offset', '0%'  ).attr('stop-color', '#ff4ce1').attr('stop-opacity', '0.7')
+  d3.select(dom.window.document.body.querySelector('#slide')).append('stop').attr('offset', '25%' ).attr('stop-color', '#4cd5ff').attr('stop-opacity', '0.7')
+  d3.select(dom.window.document.body.querySelector('#slide')).append('stop').attr('offset', '75%' ).attr('stop-color', '#4cd5ff').attr('stop-opacity', '0.7')
+  d3.select(dom.window.document.body.querySelector('#slide')).append('stop').attr('offset', '100%').attr('stop-color', '#ff4ce1').attr('stop-opacity', '0.7')
+
 
   sus.shortNotes = sus.shortNotes.map(note => {
     note.position = 768 / sus.BEATs[note.measure] / 192 * note.position
@@ -108,8 +66,138 @@ module.exports.getImages = async raw_sus => {
     return long
   })
 
+  // ベース描画
+  d3.select(dom.window.document.body.querySelector('#score'))
+    .append('g')
+    .attr('id', 'base')
+
+  d3.select(dom.window.document.body.querySelector('#base'))
+    .append('rect')
+    .attr('id', 'base_black')
+    .attr('x', '0')
+    .attr('y', '0')
+    .attr('width', '272px')
+    .attr('height', `${height}px`)
+    .attr('fill', '#000000')
+
+  // レーン描画
+  d3.select(dom.window.document.body.querySelector('#base'))
+    .append('g')
+    .attr('id', 'lane_line')
+
+  for(let i = 0; i <= 8; i++)
+    d3.select(dom.window.document.body.querySelector('#lane_line'))
+      .append('line')
+      .attr('x1', `${32*i + 8}px`)
+      .attr('y1', `0px`)
+      .attr('x2', `${32*i + 8}px`)
+      .attr('y2', `${height}px`)
+      .attr('stroke-width', '1px')
+      .attr('stroke', '#888')
+
+  // 小節線描画
+  d3.select(dom.window.document.body.querySelector('#base'))
+    .append('g')
+    .attr('id', 'measure_line')
+
+  for(let i = 0; i < sus.measure + 1; i++)
+    d3.select(dom.window.document.body.querySelector('#measure_line'))
+      .append('line')
+      .attr('x1', '0px')
+      .attr('y1', `${height - (i * 768 + 16)}px`)
+      .attr('x2', '272px')
+      .attr('y2', `${height - (i * 768 + 16)}px`)
+      .attr('stroke-width', '2px')
+      .attr('stroke', '#fff')
+
+  // 拍線描画
+  d3.select(dom.window.document.body.querySelector('#base'))
+    .append('g')
+    .attr('id', 'beat_line')
+
+  sus.BEATs.forEach((beat, index) => {
+    const base = 768 * index
+    for(let i = 1; i < beat; i++)
+      d3.select(dom.window.document.body.querySelector('#beat_line'))
+        .append('line')
+        .attr('x1', '0px')
+        .attr('y1', `${height - (768 * index + 768/beat*i + 8)}px`)
+        .attr('x2', '272px')
+        .attr('y2', `${height - (768 * index + 768/beat*i + 8)}px`)
+        .attr('stroke-width', '1px')
+        .attr('stroke', '#fff')
+  })
+
+  // HOLD SLIDE ベース
+  d3.select(dom.window.document.body.querySelector('#score'))
+    .append('g')
+    .attr('id', 'long')
+
+  d3.select(dom.window.document.body.querySelector('#long'))
+    .append('g')
+    .attr('id', 'long_base')
+
+  sus.longNotes.filter(long => long.type !== 4)
+    .forEach(longNotes => {
+
+      // 可視中継点で分割（色分けの為）
+      const colorBlocks = longNotes.notes.reduce((list,note) => {
+        list[list.length - 1].push(Object.assign({},note))
+        if(note.note_type !== 3) return list
+        list.push([])
+        list[list.length - 1].push(Object.assign({},note))
+        return list
+      },[[]])
+
+      colorBlocks.forEach(colorBlock => {
+
+        // 不可視中継点で分割（ベジェ判定の為）
+        const bases = colorBlock.reduce((list,note) => {
+          list[list.length - 1].push(Object.assign({},note))
+          if(![5].includes(note.note_type)) return list
+          list.push([])
+          list[list.length - 1].push(Object.assign({},note))
+          return list
+        },[[]])
+
+        const points = bases.reduce((list,notes) => {
+          // ノーツがある場合ベースの位置を8pxずらす
+          if([1,2,3].includes(notes[0].note_type)) notes[0].position += 8
+          if([1,2,3].includes(notes[notes.length - 1].note_type)) notes[notes.length - 1].position -= 8
+
+          if(notes.length > 2 && notes.some(n => n.note_type === 4)){
+            // ベジェ
+            const n1 = notes.map(n => ([n.lane * 16 + 8 + 4               , n.measure * 768 + n.position + 8]))
+            const n2 = notes.map(n => ([n.lane * 16 + 8 + n.width * 16 - 4, n.measure * 768 + n.position + 8]))
+
+            bezier(n1, 100).forEach(c => list[0].push({x: c[0], y: height - c[1]}))
+            bezier(n2, 100).forEach(c => list[1].push({x: c[0], y: height - c[1]}))
+          } else {
+            // 直線
+            notes.forEach(note => {
+              list[0].push({x: note.lane * 16 + 8 + 4, y: height - (note.measure * 768 + note.position + 8)})
+              list[1].push({x: note.lane * 16 + 8 + note.width * 16 - 4, y: height - (note.measure * 768 + note.position + 8)})
+            })
+          }
+          return list
+        },[[],[]])
+
+        let data = "M"
+
+        points[0].forEach(point => data += `${point.x} ${point.y} L`)
+        points[1].reverse().forEach(point => data += `${point.x} ${point.y} L`)
+
+        data = data.slice(0,-1) + 'z'
+        d3.select(dom.window.document.body.querySelector('#long_base'))
+          .append('path')
+          .attr('d', data)
+          .attr('fill', `url(#${longNotes.type == 2 ? 'hold' : 'slide'})`)
+      })
+    })
+
+  return dom.window.document.body.innerHTML
+
   const images = []
-  sus.measure++
 
   for(let count = 0; count < Math.ceil(sus.measure / 40); count++){
     let a = ((count+1) * 40) > sus.measure ? sus.measure : (count+1) * 40
@@ -117,84 +205,6 @@ module.exports.getImages = async raw_sus => {
 
     const canvas = createCanvas(272, 768 * (a - b) + 16)
     const ctx = canvas.getContext('2d')
-
-    ctx.scale(1, -1)
-    ctx.translate(0,8+a*-768 )
-
-    // 小節線描画
-    for(let i = -1; i < sus.measure; i++) ctx.drawImage(measure, 0, i*768 + 8)
-
-    // 拍線描画
-    sus.BEATs.forEach((beat, index) => {
-      const base = 768 * index
-      for(let i = 1; i < beat; i++)
-        ctx.drawImage(split, 0, 768 * index + 768/beat*i + 8)
-    })
-
-    // HOLD/SLIDE ベース
-    sus.longNotes.filter(long => long.type !== 4)
-      .forEach(longNotes => {
-
-        // 可視中継点で分割（色分けの為）
-        const colorBlocks = longNotes.notes.reduce((list,note) => {
-          list[list.length - 1].push(Object.assign({},note))
-          if(note.note_type !== 3) return list
-          list.push([])
-          list[list.length - 1].push(Object.assign({},note))
-          return list
-        },[[]])
-
-        colorBlocks.forEach(colorBlock => {
-
-          // 不可視中継点で分割（ベジェ判定の為）
-          const bases = colorBlock.reduce((list,note) => {
-            list[list.length - 1].push(Object.assign({},note))
-            if(![5].includes(note.note_type)) return list
-            list.push([])
-            list[list.length - 1].push(Object.assign({},note))
-            return list
-          },[[]])
-
-          bases.forEach(notes => {
-            ctx.beginPath()
-
-            if([1,2,3].includes(notes[0].note_type)) notes[0].position += 8
-            if([1,2,3].includes(notes[notes.length - 1].note_type)) notes[notes.length - 1].position -= 8
-
-            if(notes.length > 2 && notes.some(n => n.note_type === 4)){
-              const n1 = notes.map(n => ([n.lane * 16 + 8 + 4               , n.measure * 768 + n.position + 8]))
-              const n2 = notes.map(n => ([n.lane * 16 + 8 + n.width * 16 - 4, n.measure * 768 + n.position + 8]))
-
-              const curve1 = bezier(n1, 100)
-              const curve2 = bezier(n2, 100)
-              ctx.moveTo(curve1[0][0], curve1[0][1])
-              for(let i = 1; i < curve1.length; i++)      ctx.lineTo(curve1[i][0], curve1[i][1])
-              for(let i = curve2.length - 1; i >= 0; i--) ctx.lineTo(curve2[i][0], curve2[i][1])
-            } else {
-              ctx.moveTo(notes[0].lane * 16 + 8 + 4, notes[0].measure * 768 + notes[0].position + 8)
-              for(let i = 1; i < notes.length; i++) {
-                ctx.lineTo(notes[i].lane * 16 + 8 + 4, notes[i].measure * 768 + notes[i].position + 8)
-                if([2,3].includes(notes[i].note_type)) ctx.lineTo(notes[i].lane * 16 + 8 + 4, notes[i].measure * 768 + notes[i].position + 8)
-              }
-              for(let i = notes.length - 1; i >= 1; i--) {
-                ctx.lineTo(notes[i].lane * 16 + 8 + notes[i].width * 16 - 4, notes[i].measure * 768 + notes[i].position + 8)
-                if([2,3].includes(notes[i].note_type)) ctx.lineTo(notes[i].lane * 16 + 8 + notes[i].width * 16 - 4, notes[i].measure * 768 + notes[i].position + 8)
-              }
-              ctx.lineTo(notes[0].lane * 16 + 8 + notes[0].width * 16 - 4,notes[0].measure * 768 + notes[0].position + 8)
-            }
-            ctx.closePath()
-
-            let gradient = ctx.createLinearGradient(0,colorBlock[0].measure * 768 + colorBlock[0].position + 16, 0 ,colorBlock[colorBlock.length-1].measure * 768 + colorBlock[colorBlock.length-1].position)
-            gradient.addColorStop(0, '#ff4ce1bb')
-            gradient.addColorStop(0.25, longNotes.type == 2 ? '#f6ff4ccc' : longNotes.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
-            gradient.addColorStop(0.75, longNotes.type == 2 ? '#f6ff4ccc' : longNotes.type == 3 ? '#4cd5ffbb' : '#ff4ce1bb')
-            gradient.addColorStop(1, '#ff4ce1bb')
-            ctx.fillStyle = gradient
-            ctx.fill()
-
-          })
-        })
-      })
 
     // SLIDE 線
     sus.longNotes.filter(long => long.type === 3)
@@ -380,6 +390,5 @@ module.exports.getImages = async raw_sus => {
 
     images.push(canvas.toDataURL())
   }
-  return images
+  return dom.window.document.body.innerHTML
 }
-
