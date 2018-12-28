@@ -22,7 +22,7 @@ $ npm i sus-2-image
 
 ## How to use
 
-```
+```js
 const Sus2Image = require('sus-2-image')
 const fs = require('fs')
 
