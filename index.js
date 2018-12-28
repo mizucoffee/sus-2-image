@@ -6,28 +6,18 @@ const builder = require('xmlbuilder')
 const short_color = {1: '#FF3333', 2: '#FFFF33', 3: '#33CCCC', 4: '#0033FF',5: '#FFFF33', 6: '#FFFF33', 7: '#77FF33'}
 const long_color = {2: '#FFA500', 3: '#0033FF'}
 
-module.exports.getMeasures = async sus => {
-  const images = (await module.exports.getImages(sus)).reverse()
-  let process = []
-  for(let i = 0; i < images.length; i++) {
-    const image = await sharp(Buffer.from(images[i].split(',')[1], 'base64'))
-    const m = ((await image.metadata()).height - 16) / 768
-    for(let j = 0; j < m; j++)
-      process.push(image.extract({ left: 0, top: j*768, width: 272, height: 768 }).toBuffer())
-  }
-  const buffers = await Promise.all(process)
-  const measures = []
-  for(let i = 0; i < buffers.length; i++)
-    measures.push("data:image/png;base64," + buffers[i].toString('base64'))
-  return measures
+module.exports.getImage = raw_sus => {
+  const svg = genSvg(raw_sus)
+  svg.ele('clipPath', { id: 'clip' })
+    .ele('rect', {x: 0, y: 32 , width: 272, height: 768})
+  return svg.end({ pretty: true, indent: '  ', newline: '\n', allowEmpty: false, spacebeforeslash: '' })
 }
 
-module.exports.getImages = async raw_sus => {
-
+function genSvg(raw_sus) {
   const sus = SusAnalyzer.getData(raw_sus)
   const height = 768 * sus.measure + 32
 
-  const svg = builder.begin().ele('svg', { xmlns: 'http://www.w3.org/2000/svg', version: '1.1', id: 'score', width: '272px', height: `${height}px` })
+  const svg = builder.begin().ele('svg', { xmlns: 'http://www.w3.org/2000/svg', version: '1.1', width: '272px', height: `${height}px` })
   svg.ele('linearGradient', {id: 'hold', x1:'0', y1: '0', x2: '0', y2: '1'})
     .ele('stop', {'offset': '0%'  , 'stop-color': '#FF4CE1', 'stop-opacity': '0.7'}).up()
     .ele('stop', {'offset': '25%' , 'stop-color': '#F6FF4C', 'stop-opacity': '0.7'}).up()
@@ -42,7 +32,8 @@ module.exports.getImages = async raw_sus => {
   sus.shortNotes = sus.shortNotes.map(note => ({...note, position: note.position + 8}))
   sus.longNotes = sus.longNotes.map(long => ({...long, notes: long.notes.map(note => ({...note, position: note.position + 8}))}))
 
-  const base = svg.ele('g', {id: 'base'})
+  const score = svg.ele('g', {id: 'score'})
+  const base = score.ele('g', {id: 'base'})
 
   // ベース描画
   base.ele('rect', {id: 'base_black', x: '0', y: '0', width: '272px', height: `${height}px`, fill: '#000000'})
@@ -64,8 +55,10 @@ module.exports.getImages = async raw_sus => {
       beat_line.ele('line', {x1: `0px`, y1: `${height - (768 * index + 768/beat*i + 16)}px`, x2: `272px`, y2: `${height - (768 * index + 768/beat*i + 16)}px`, 'stroke-width': '1px', stroke: '#FFFFFF'})
   })
 
+  const notes = score.ele('g', {id: 'notes'})
+
   // HOLD SLIDE ベース
-  const long = base.ele('g', {id: 'long'})
+  const long = notes.ele('g', {id: 'long'})
   const long_base = long.ele('g', {id: 'long_base'})
 
   sus.longNotes.filter(long => long.type !== 4)
@@ -81,7 +74,6 @@ module.exports.getImages = async raw_sus => {
       },[[]])
 
       colorBlocks.forEach(colorBlock => {
-
         // 不可視中継点で分割（ベジェ判定の為）
         const bases = colorBlock.reduce((list,note) => {
           list[list.length - 1].push(Object.assign({},note))
@@ -196,8 +188,8 @@ module.exports.getImages = async raw_sus => {
   })
 
   // 地を這うTAP系
-  const short_notes = base.ele('g', {id: 'short_notes'})
-  const air = base.ele('g', {id: 'air'})
+  const short_notes = notes.ele('g', {id: 'short_notes'})
+  const air = notes.ele('g', {id: 'air'})
   const air_notes = air.ele('g', {id: 'air_notes'})
 
   sus.shortNotes.filter(note => [1,5].includes(note.lane_type)).forEach(note => {
@@ -314,11 +306,11 @@ module.exports.getImages = async raw_sus => {
       })
   })
 
-  return svg.end({ pretty: true, indent: '  ', newline: '\n', allowEmpty: false, spacebeforeslash: '' })
+  return svg
 }
 
 function drawNotes(parent,x,y,width,color,line) {
   const notes = parent.ele('g', {class: 'notes'})
-  notes.ele('rect', {x: x, y: y - 16, rx: '4px', ry: '4px', width: `${width * 16}px`, height: '16px', fill: color, stroke: '#FFFFFF', 'stroke-width': '3px'})
+  notes.ele('rect', {x: x+2, y: y - 16, rx: '4px', ry: '4px', width: `${width * 16 - 4}px`, height: '16px', fill: color, stroke: '#FFFFFF', 'stroke-width': '3px'})
   if(line) notes.ele('path', {d: `M${x + 8},${y - 8} L${x + width * 16 - 8},${y - 8}`, stroke: '#FFFFFF', 'stroke-width': '3px'})
 }
