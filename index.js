@@ -1,14 +1,9 @@
 const SusAnalyzer = require('sus-analyzer')
 const bezier = require('simple-bezier')
 const sharp = require('sharp')
-const { createCanvas, loadImage } = require('canvas')
-const fs = require('fs')
-const path = require('path')
-const jsdom = require('jsdom')
-const { JSDOM } = jsdom
-const d3 = require('d3')
+const builder = require('xmlbuilder')
 
-const short_color = {1: '#FF3333', 2: '#FF3', 3: '#3cc', 4: '#0033FF',5: '#FF3', 6: '#FF3', 7: '#77ff33'}
+const short_color = {1: '#FF3333', 2: '#FFFF33', 3: '#33CCCC', 4: '#0033FF',5: '#FFFF33', 6: '#FFFF33', 7: '#77FF33'}
 const long_color = {2: '#FFA500', 3: '#0033FF'}
 
 module.exports.getMeasures = async sus => {
@@ -30,114 +25,48 @@ module.exports.getMeasures = async sus => {
 module.exports.getImages = async raw_sus => {
 
   const sus = SusAnalyzer.getData(raw_sus)
-
   const height = 768 * sus.measure + 32
-  let dom = new JSDOM('<html><body></body></html>')
 
-  d3.select(dom.window.document.body)
-    .append('svg')
-    .attr('xmlns', 'http://www.w3.org/2000/svg')
-    .attr('version', '1.1')
-    .attr('id', 'score')
-    .attr('width', '272px')
-    .attr('height', `${height}px`)
+  const svg = builder.begin().ele('svg', { xmlns: 'http://www.w3.org/2000/svg', version: '1.1', id: 'score', width: '272px', height: `${height}px` })
+  svg.ele('linearGradient', {id: 'hold', x1:'0', y1: '0', x2: '0', y2: '1'})
+    .ele('stop', {'offset': '0%'  , 'stop-color': '#FF4CE1', 'stop-opacity': '0.7'}).up()
+    .ele('stop', {'offset': '25%' , 'stop-color': '#F6FF4C', 'stop-opacity': '0.7'}).up()
+    .ele('stop', {'offset': '75%' , 'stop-color': '#F6FF4C', 'stop-opacity': '0.7'}).up()
+    .ele('stop', {'offset': '100%', 'stop-color': '#FF4CE1', 'stop-opacity': '0.7'}).up()
+  svg.ele('linearGradient', {id: 'slide', x1:'0', y1: '0', x2: '0', y2: '1'})
+    .ele('stop', {'offset': '0%'  , 'stop-color': '#FF4CE1', 'stop-opacity': '0.7'}).up()
+    .ele('stop', {'offset': '25%' , 'stop-color': '#4CD5FF', 'stop-opacity': '0.7'}).up()
+    .ele('stop', {'offset': '75%' , 'stop-color': '#4CD5FF', 'stop-opacity': '0.7'}).up()
+    .ele('stop', {'offset': '100%', 'stop-color': '#FF4CE1', 'stop-opacity': '0.7'}).up()
 
-  // グラデーション定義
-  d3.select(dom.window.document.body.querySelector('#score')).append('linearGradient').attr('id', 'hold').attr('x1', '0').attr('y1', '0').attr('x2', '0').attr('y2', '1')
-  d3.select(dom.window.document.body.querySelector('#score')).append('linearGradient').attr('id', 'slide').attr('x1', '0').attr('y1', '0').attr('x2', '0').attr('y2', '1')
+  sus.shortNotes = sus.shortNotes.map(note => ({...note, position: note.position + 8}))
+  sus.longNotes = sus.longNotes.map(long => ({...long, notes: long.notes.map(note => ({...note, position: note.position + 8}))}))
 
-  d3.select(dom.window.document.body.querySelector('#hold' )).append('stop').attr('offset', '0%'  ).attr('stop-color', '#ff4ce1').attr('stop-opacity', '0.7')
-  d3.select(dom.window.document.body.querySelector('#hold' )).append('stop').attr('offset', '25%' ).attr('stop-color', '#f6ff4c').attr('stop-opacity', '0.7')
-  d3.select(dom.window.document.body.querySelector('#hold' )).append('stop').attr('offset', '75%' ).attr('stop-color', '#f6ff4c').attr('stop-opacity', '0.7')
-  d3.select(dom.window.document.body.querySelector('#hold' )).append('stop').attr('offset', '100%').attr('stop-color', '#ff4ce1').attr('stop-opacity', '0.7')
-  d3.select(dom.window.document.body.querySelector('#slide')).append('stop').attr('offset', '0%'  ).attr('stop-color', '#ff4ce1').attr('stop-opacity', '0.7')
-  d3.select(dom.window.document.body.querySelector('#slide')).append('stop').attr('offset', '25%' ).attr('stop-color', '#4cd5ff').attr('stop-opacity', '0.7')
-  d3.select(dom.window.document.body.querySelector('#slide')).append('stop').attr('offset', '75%' ).attr('stop-color', '#4cd5ff').attr('stop-opacity', '0.7')
-  d3.select(dom.window.document.body.querySelector('#slide')).append('stop').attr('offset', '100%').attr('stop-color', '#ff4ce1').attr('stop-opacity', '0.7')
-
-  sus.shortNotes = sus.shortNotes.map(note => {
-    note.position = 768 / sus.BEATs[note.measure] / 192 * note.position + 8
-    return note
-  })
-
-  sus.longNotes = sus.longNotes.map(long => {
-    long.notes = long.notes.map(note => {
-      note.position = 768 / sus.BEATs[note.measure] / 192 * note.position + 8
-      return note
-    })
-    return long
-  })
+  const base = svg.ele('g', {id: 'base'})
 
   // ベース描画
-  d3.select(dom.window.document.body.querySelector('#score'))
-    .append('g')
-    .attr('id', 'base')
-
-  d3.select(dom.window.document.body.querySelector('#base'))
-    .append('rect')
-    .attr('id', 'base_black')
-    .attr('x', '0')
-    .attr('y', '0')
-    .attr('width', '272px')
-    .attr('height', `${height}px`)
-    .attr('fill', '#000000')
+  base.ele('rect', {id: 'base_black', x: '0', y: '0', width: '272px', height: `${height}px`, fill: '#000000'})
 
   // レーン描画
-  d3.select(dom.window.document.body.querySelector('#base'))
-    .append('g')
-    .attr('id', 'lane_line')
-
+  const lane_line = base.ele('g', {id: 'lane_line'})
   for(let i = 0; i <= 8; i++)
-    d3.select(dom.window.document.body.querySelector('#lane_line'))
-      .append('line')
-      .attr('x1', `${32*i + 8}px`)
-      .attr('y1', `0px`)
-      .attr('x2', `${32*i + 8}px`)
-      .attr('y2', `${height}px`)
-      .attr('stroke-width', '1px')
-      .attr('stroke', '#888')
+    lane_line.ele('line', {x1: `${32*i + 8}px`, y1: '0px', x2: `${32*i + 8}px`, y2: `${height}px`, 'stroke-width': '1px', stroke: '#888888'})
 
   // 小節線描画
-  d3.select(dom.window.document.body.querySelector('#base'))
-    .append('g')
-    .attr('id', 'measure_line')
-
+  const measure_line = base.ele('g', {id: 'measure_line'})
   for(let i = 0; i < sus.measure + 1; i++)
-    d3.select(dom.window.document.body.querySelector('#measure_line'))
-      .append('line')
-      .attr('x1', '0px')
-      .attr('y1', `${height - (i * 768 + 16)}px`)
-      .attr('x2', '272px')
-      .attr('y2', `${height - (i * 768 + 16)}px`)
-      .attr('stroke-width', '2px')
-      .attr('stroke', '#fff')
+    measure_line.ele('line', {x1: `0px`, y1: `${height - (i * 768 + 16)}px`, x2: `272px`, y2: `${height - (i * 768 + 16)}px`, 'stroke-width': '2px', stroke: '#FFFFFF'})
 
   // 拍線描画
-  d3.select(dom.window.document.body.querySelector('#base'))
-    .append('g')
-    .attr('id', 'beat_line')
-
+  const beat_line = base.ele('g', {id: 'beat_line'})
   sus.BEATs.forEach((beat, index) => {
-    const base = 768 * index
-    for(let i = 1; i < beat; i++)
-      d3.select(dom.window.document.body.querySelector('#beat_line'))
-        .append('line')
-        .attr('x1', '0px')
-        .attr('y1', `${height - (768 * index + 768/beat*i + 16)}px`)
-        .attr('x2', '272px')
-        .attr('y2', `${height - (768 * index + 768/beat*i + 16)}px`)
-        .attr('stroke-width', '1px')
-        .attr('stroke', '#fff')
+    for(let i = 0; i < beat; i++)
+      beat_line.ele('line', {x1: `0px`, y1: `${height - (768 * index + 768/beat*i + 16)}px`, x2: `272px`, y2: `${height - (768 * index + 768/beat*i + 16)}px`, 'stroke-width': '1px', stroke: '#FFFFFF'})
   })
 
   // HOLD SLIDE ベース
-  d3.select(dom.window.document.body.querySelector('#score'))
-    .append('g')
-    .attr('id', 'long')
-
-  d3.select(dom.window.document.body.querySelector('#long'))
-    .append('g')
-    .attr('id', 'long_base')
+  const long = base.ele('g', {id: 'long'})
+  const long_base = long.ele('g', {id: 'long_base'})
 
   sus.longNotes.filter(long => long.type !== 4)
     .forEach(longNotes => {
@@ -190,18 +119,12 @@ module.exports.getImages = async raw_sus => {
         points[1].reverse().forEach(point => data += `${point.x} ${point.y} L`)
 
         data = data.slice(0,-1) + 'z'
-        d3.select(dom.window.document.body.querySelector('#long_base'))
-          .append('path')
-          .attr('d', data)
-          .attr('fill', `url(#${longNotes.type == 2 ? 'hold' : 'slide'})`)
+        long_base.ele('path', {d: data, fill: `url(#${longNotes.type == 2 ? 'hold' : 'slide'})`})
       })
     })
 
-
   // SLIDE 線
-  d3.select(dom.window.document.body.querySelector('#long'))
-    .append('g')
-    .attr('id', 'long_line')
+  const long_line = long.ele('g', {id: 'long_line'})
 
   sus.longNotes.filter(long => long.type === 3)
     .forEach(longNotes => {
@@ -255,17 +178,12 @@ module.exports.getImages = async raw_sus => {
         points[1].reverse().forEach(point => data += `${point.x} ${point.y} L`)
 
         data = data.slice(0,-1) + 'z'
-        d3.select(dom.window.document.body.querySelector('#long_line'))
-          .append('path')
-          .attr('d', data)
-          .attr('fill', `#4cd5ff`)
+        long_line.ele('path', {d: data, fill: `#4CD5FF`})
       })
     })
 
   // HOLD/SLIDE ノーツ
-  d3.select(dom.window.document.body.querySelector('#long'))
-    .append('g')
-    .attr('id', 'long_notes')
+  const long_notes = long.ele('g', {id: 'long_notes'})
 
   sus.longNotes.filter(long => long.type !== 4).forEach(long => {  // AIR系でない
     long.notes.filter(note => ![4,5].includes(note.note_type)) // 不可視ノーツでない
@@ -273,22 +191,14 @@ module.exports.getImages = async raw_sus => {
         const x_pos = note.lane * 16 + 8
         const y_pos = height - (note.measure * 768 + note.position)
 
-        drawNotes(dom,x_pos,y_pos,note.width,"#long_notes",long_color[long.type],[1,4].includes(note.note_type))
+        drawNotes(long_notes,x_pos,y_pos,note.width, long_color[long.type],[1,4].includes(note.note_type))
       })
   })
 
   // 地を這うTAP系
-  d3.select(dom.window.document.body.querySelector('#score'))
-    .append('g')
-    .attr('id', 'short_notes')
-
-  d3.select(dom.window.document.body.querySelector('#score'))
-    .append('g')
-    .attr('id', 'air')
-
-  d3.select(dom.window.document.body.querySelector('#air'))
-    .append('g')
-    .attr('id', 'air_notes')
+  const short_notes = base.ele('g', {id: 'short_notes'})
+  const air = base.ele('g', {id: 'air'})
+  const air_notes = air.ele('g', {id: 'air_notes'})
 
   sus.shortNotes.filter(note => [1,5].includes(note.lane_type)).forEach(note => {
     const x_pos = note.lane * 16 + 8
@@ -297,7 +207,7 @@ module.exports.getImages = async raw_sus => {
 
     switch (note.lane_type){
       case 1:
-        drawNotes(dom,x_pos,y_pos,note.width,"#short_notes",short_color[note.note_type],true)
+        drawNotes(short_notes,x_pos,y_pos,note.width, short_color[note.note_type],true)
         break
       case 5:
         const air_height = 16
@@ -307,19 +217,9 @@ module.exports.getImages = async raw_sus => {
         const vector = [1,2,7].includes(note.note_type) ? 0 : [3,6,8].includes(note.note_type) ? -8 : 8
 
         if ([1,3,4,7,8,9].includes(note.note_type))
-          d3.select(dom.window.document.body.querySelector('#air_notes'))
-            .append('path')
-            .attr('d', `M${x_pos + 8 + vector},${top_y} L${x_pos + note.width * 8 + vector},${top_y - togari} L${x_pos - 8 + note.width * 16 + vector},${top_y} L${x_pos - 8 + note.width * 16},${btm_y} L${x_pos + note.width * 8 + vector / 2},${btm_y - togari} L${x_pos + 8},${btm_y} z`)
-            .attr('fill', `${[1,3,4,7,8,9].includes(note.note_type) ? '#77ff33' : '#ff55ff'}`)
-            .attr('stroke', '#fff')
-            .attr('stroke-width', '2px')
+          air_notes.ele('path',{fill: `${[1,3,4,7,8,9].includes(note.note_type) ? '#77FF33' : '#FF55FF'}`, stroke: '#FFFFFF', 'stroke-width': '2px', d: `M${x_pos + 8 + vector},${top_y} L${x_pos + note.width * 8 + vector},${top_y - togari} L${x_pos - 8 + note.width * 16 + vector},${top_y} L${x_pos - 8 + note.width * 16},${btm_y} L${x_pos + note.width * 8 + vector / 2},${btm_y - togari} L${x_pos + 8},${btm_y} z`})
         else
-          d3.select(dom.window.document.body.querySelector('#air_notes'))
-            .append('path')
-            .attr('d', `M${x_pos + 8 + vector},${top_y - togari} L${x_pos + note.width * 8 + vector},${top_y} L${x_pos - 8 + note.width * 16 + vector},${top_y - togari} L${x_pos - 8 + note.width * 16 + vector / 2},${btm_y - togari} L${x_pos + note.width * 8},${btm_y} L${x_pos + 8 + vector / 2},${btm_y - togari} z`)
-            .attr('fill', `${[1,3,4,7,8,9].includes(note.note_type) ? '#77ff33' : '#ff55ff'}`)
-            .attr('stroke', '#fff')
-            .attr('stroke-width', '2px')
+          air_notes.ele('path',{fill: `${[1,3,4,7,8,9].includes(note.note_type) ? '#77FF33' : '#FF55FF'}`, stroke: '#FFFFFF', 'stroke-width': '2px', d: `M${x_pos + 8 + vector},${top_y - togari} L${x_pos + note.width * 8 + vector},${top_y} L${x_pos - 8 + note.width * 16 + vector},${top_y - togari} L${x_pos - 8 + note.width * 16 + vector / 2},${btm_y - togari} L${x_pos + note.width * 8},${btm_y} L${x_pos + 8 + vector / 2},${btm_y - togari} z`})
 
         const short = sus.shortNotes
           .filter(n => n.lane_type === 1)
@@ -339,15 +239,13 @@ module.exports.getImages = async raw_sus => {
 
         if((0 < short || 0 < long) && ![7,8,9].includes(note.note_type)) break
 
-        drawNotes(dom,x_pos,y_pos,note.width,"#air_notes",short_color[7])
+        drawNotes(air_notes,x_pos,y_pos,note.width, short_color[7])
         break
     }
   })
 
   // AIR線
-  d3.select(dom.window.document.body.querySelector('#air'))
-    .append('g')
-    .attr('id', 'air_lines')
+  const air_lines = air.ele('g', {id: 'air_lines'})
 
   sus.longNotes.filter(long => long.type === 4)
     .forEach(longNotes => {
@@ -399,18 +297,12 @@ module.exports.getImages = async raw_sus => {
         points[1].reverse().forEach(point => data += `${point.x} ${point.y} L`)
 
         data = data.slice(0,-1) + 'z'
-        d3.select(dom.window.document.body.querySelector('#long_line'))
-          .append('path')
-          .attr('d', data)
-          .attr('fill', `#4cff51`)
-          .attr('style','fill-opacity: 0.7')
+        long_base.ele('path', {d: data, fill: '#4CFF51', style: 'fill-opacity: 0.7'})
       })
     })
 
   // AIR ACTIONノーツ
-  d3.select(dom.window.document.body.querySelector('#air'))
-    .append('g')
-    .attr('id', 'air_action_notes')
+  const air_action_notes = air.ele('g', {id: 'air_action_notes'})
 
   sus.longNotes.filter(long => long.type === 4).forEach(long => {
     long.notes.filter(note => ![1,4,5].includes(note.note_type))
@@ -418,32 +310,15 @@ module.exports.getImages = async raw_sus => {
         const x_pos = note.lane * 16 + 8
         const y_pos = height - (note.measure * 768 + note.position)
 
-        drawNotes(dom,x_pos,y_pos,note.width,"#air_action_notes",'#ff55ff',false)
+        drawNotes(air_action_notes,x_pos,y_pos,note.width, '#FF55FF')
       })
   })
 
-  return dom.window.document.body.innerHTML
+  return svg.end({ pretty: true, indent: '  ', newline: '\n', allowEmpty: false, spacebeforeslash: '' })
 }
 
-function drawNotes(dom,x,y,width,parent,color,line) {
-  const group = d3.select(dom.window.document.body.querySelector(parent))
-    .append('g')
-    .attr('class', 'notes')
-
-  group.append('rect')
-    .attr('x', x)
-    .attr('y', y - 16)
-    .attr('rx', '4px')
-    .attr('ry', '4px')
-    .attr('width', width * 16)
-    .attr('height', `16px`)
-    .attr('fill', color)
-    .attr('stroke', '#fff')
-    .attr('stroke-width', '3px')
-
-  if(!line) return
-  group.append('path')
-    .attr('d', `M${x + 8},${y - 8} L${x + width * 16 - 8},${y - 8}`)
-    .attr('stroke', '#fff')
-    .attr('stroke-width', '3px')
+function drawNotes(parent,x,y,width,color,line) {
+  const notes = parent.ele('g', {class: 'notes'})
+  notes.ele('rect', {x: x, y: y - 16, rx: '4px', ry: '4px', width: `${width * 16}px`, height: '16px', fill: color, stroke: '#FFFFFF', 'stroke-width': '3px'})
+  if(line) notes.ele('path', {d: `M${x + 8},${y - 8} L${x + width * 16 - 8},${y - 8}`, stroke: '#FFFFFF', 'stroke-width': '3px'})
 }
