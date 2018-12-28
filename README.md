@@ -23,15 +23,14 @@ $ npm i sus-2-image
 ## How to use
 
 ```
-const Sus2Image = require('sus-2-image'),
-  fs = require('fs')
+const Sus2Image = require('sus-2-image')
+const fs = require('fs')
 
 const sus = fs.readFileSync('example.sus','utf8')
 
-Sus2Image.getImages(sus)
-  .then(images =>
-    images.forEach((image,index) =>
-      fs.writeFileSync(`data${index}.png` , new Buffer(image.split(',')[1], 'base64'))
-    )
-  )
+const image  = Sus2Image.getImage(sus)
+const images = Sus2Image.getImages(sus)
+
+fs.writeFileSync(`score_all.svg` , image)
+images.forEach((img,index) => fs.writeFileSync(`score_${index}.svg`, img))
 ```

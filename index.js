@@ -6,11 +6,28 @@ const builder = require('xmlbuilder')
 const short_color = {1: '#FF3333', 2: '#FFFF33', 3: '#33CCCC', 4: '#0033FF',5: '#FFFF33', 6: '#FFFF33', 7: '#77FF33'}
 const long_color = {2: '#FFA500', 3: '#0033FF'}
 
-module.exports.getImage = raw_sus => {
+module.exports.getImage = raw_sus => genSvg(raw_sus).end({ pretty: true, indent: '  ', newline: '\n', allowEmpty: false, spacebeforeslash: '' })
+
+module.exports.getImages = raw_sus => {
   const svg = genSvg(raw_sus)
-  svg.ele('clipPath', { id: 'clip' })
-    .ele('rect', {x: 0, y: 32 , width: 272, height: 768})
-  return svg.end({ pretty: true, indent: '  ', newline: '\n', allowEmpty: false, spacebeforeslash: '' })
+  const base = svg.children.filter(e => e.name === 'g')[0]
+  const measure = (Number(svg.attributes.height.value.slice(0,-2)) - 32) / 768
+
+  const images = []
+
+  base.att('clip-path', 'url(#clip)')
+  svg.att('height', '768px')
+  for (var i = 0; i < measure; i++) {
+    base.att('transform', `translate(0, ${-32 - 768 * i})`)
+    const clip = svg.ele('clipPath', { id: 'clip' })
+    clip.ele('rect', {x: 0, y: 32 + 768 * i , width: 272, height: 768})
+
+    images.push(svg.end({ pretty: true, indent: '  ', newline: '\n', allowEmpty: false, spacebeforeslash: '' }))
+
+    clip.remove()
+    base.removeAttribute('transform')
+  }
+  return images.reverse()
 }
 
 function genSvg(raw_sus) {
