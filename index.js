@@ -1,36 +1,28 @@
 const SusAnalyzer = require('sus-analyzer')
 const bezier = require('simple-bezier')
+const { convert } = require('convert-svg-to-png')
 const sharp = require('sharp')
 const builder = require('xmlbuilder')
 
 const short_color = {1: '#FF3333', 2: '#FFFF33', 3: '#33CCCC', 4: '#0033FF',5: '#FFFF33', 6: '#FFFF33', 7: '#77FF33'}
 const long_color = {2: '#FFA500', 3: '#0033FF'}
 
-module.exports.getImage = raw_sus => genSvg(raw_sus).end({ pretty: true, indent: '  ', newline: '\n', allowEmpty: false, spacebeforeslash: '' })
+module.exports.getPNG = async raw_sus => await convert(module.exports.getSVG(raw_sus),{'puppeteer': {'args': ['--no-sandbox']}})
 
-module.exports.getImages = raw_sus => {
-  const svg = genSvg(raw_sus)
-  const base = svg.children.filter(e => e.name === 'g')[0]
-  const measure = (Number(svg.attributes.height.value.slice(0,-2)) - 32) / 768
+module.exports.getPNGs = async raw_sus => {
+  const png = await convert(module.exports.getSVG(raw_sus),{'puppeteer': {'args': ['--no-sandbox']}})
 
-  const images = []
+  let process = []
+  const image = await sharp(png)
+  const m = Math.round(((await image.metadata()).height - 16) / 768)
+  for(let i = 0; i < m; i++)
+    process.push(image.extract({ left: 0, top: i*768 + 32, width: 272, height: 768 }).toBuffer())
+  const buffers = await Promise.all(process)
 
-  base.att('clip-path', 'url(#clip)')
-  svg.att('height', '768px')
-  for (var i = 0; i < measure; i++) {
-    base.att('transform', `translate(0, ${-32 - 768 * i})`)
-    const clip = svg.ele('clipPath', { id: 'clip' })
-    clip.ele('rect', {x: 0, y: 32 + 768 * i , width: 272, height: 768})
-
-    images.push(svg.end({ pretty: true, indent: '  ', newline: '\n', allowEmpty: false, spacebeforeslash: '' }))
-
-    clip.remove()
-    base.removeAttribute('transform')
-  }
-  return images.reverse()
+  return buffers
 }
 
-function genSvg(raw_sus) {
+module.exports.getSVG = raw_sus => {
   const sus = SusAnalyzer.getData(raw_sus)
   const height = 768 * sus.measure + 32
 
@@ -323,7 +315,7 @@ function genSvg(raw_sus) {
       })
   })
 
-  return svg
+  return svg.end({ pretty: true, indent: '  ', newline: '\n', allowEmpty: false, spacebeforeslash: '' })
 }
 
 function drawNotes(parent,x,y,width,color,line) {
