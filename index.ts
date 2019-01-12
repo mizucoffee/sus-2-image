@@ -5,37 +5,76 @@ import * as SusAnalyzer from 'sus-analyzer'
 import { ISusNotes } from 'sus-analyzer'
 import * as builder from 'xmlbuilder'
 
-enum NoteType {
+enum LongNoteType {
   START = 1,
   END = 2,
-  RELAY = 3,
-  INFLECTION = 4,
-  INV_RELAY = 5
+  STEP = 3,
+  CTRL = 4,
+  ISTEP = 5
 }
 
-// enum LaneType {
-//   SHORT = 1,
-//   HOLD = 2,
-//   SLIDE = 3,
-//   AIRACTION = 4,
-//   AIR = 5
-// }
+enum AirNoteType {
+  U = 1,
+  D = 2,
+  U_L = 3,
+  U_R = 4,
+  D_L = 5,
+  D_R = 6,
+  U_G = 7,
+  U_G_L = 8,
+  U_G_R = 9
+}
 
 interface ILongPoint {
   x: number
   y: number
 }
 
-// const shortColor = new Map<number, string>([
-//   [1, '#FF3333'],
-//   [2, '#FFFF33'],
-//   [3, '#33CCCC'],
-//   [4, '#0033FF'],
-//   [5, '#FFFF33'],
-//   [6, '#FFFF33'],
-//   [7, '#77FF33']
-// ])
-// const longColor = new Map<number, string>([[2, '#FFA500'], [3, '#0033FF']])
+interface INote {
+  g: {
+    '@class': string
+    path?: {
+      '@d': string
+      '@stroke': string
+      '@stroke-width': string
+    }
+    rect: {
+      '@fill': string
+      '@height': string
+      '@rx': string
+      '@ry': string
+      '@stroke': string
+      '@stroke-width': string
+      '@width': string
+      '@x': number
+      '@y': number
+    }
+  }
+}
+
+interface IAir {
+  path: {
+    '@d': string
+    '@fill': string
+    '@stroke': string
+    '@stroke-width': string
+  }
+}
+
+const ShortColor = new Map<number, string>([
+  [1, '#FF3333'],
+  [2, '#FFFF33'],
+  [3, '#33CCCC'],
+  [4, '#0033FF'],
+  [5, '#FFFF33'],
+  [6, '#FFFF33'],
+  [7, '#77FF33']
+])
+const LongColor = new Map<number, string>([
+  [2, '#FFA500'],
+  [3, '#0033FF'],
+  [4, '#FF55FF']
+])
 
 export async function getPNG(rawSus: string): Promise<Buffer> {
   return await convert(await getSVG(rawSus), {
@@ -127,20 +166,20 @@ export async function getSVG(rawSus: string) {
 
   sus.shortNotes = sus.shortNotes.map(note => ({
     ...note,
-    position: note.tick + 8
+    tick: note.tick + 8
   }))
-  sus.holdNotes = sus.holdNotes.map(longNotes =>
-    longNotes.map(note => ({ ...note, tick: note.tick + 8 }))
+  sus.holdNotes = sus.holdNotes.map(ln =>
+    ln.map(note => ({ ...note, tick: note.tick + 8 }))
   )
-  sus.slideNotes = sus.slideNotes.map(longNotes =>
-    longNotes.map(note => ({ ...note, tick: note.tick + 8 }))
+  sus.slideNotes = sus.slideNotes.map(ln =>
+    ln.map(note => ({ ...note, tick: note.tick + 8 }))
   )
-  sus.airActionNotes = sus.airActionNotes.map(longNotes =>
-    longNotes.map(note => ({ ...note, tick: note.tick + 8 }))
+  sus.airActionNotes = sus.airActionNotes.map(ln =>
+    ln.map(note => ({ ...note, tick: note.tick + 8 }))
   )
   sus.airNotes = sus.airNotes.map(note => ({
     ...note,
-    position: note.tick + 8
+    tick: note.tick + 8
   }))
 
   const score = svg.ele('g', { id: 'score' })
@@ -157,7 +196,7 @@ export async function getSVG(rawSus: string) {
   })
 
   // レーン描画
-  const laneLine = base.ele('g', { id: 'lane_line' })
+  const laneLine = base.ele('g', { id: 'laneLine' })
   for (let i = 0; i <= 8; i++) {
     laneLine.ele('line', {
       stroke: '#888888',
@@ -170,7 +209,7 @@ export async function getSVG(rawSus: string) {
   }
 
   // 小節線描画
-  const measureLine = base.ele('g', { id: 'measure_line' })
+  const measureLine = base.ele('g', { id: 'measureLine' })
   for (let i = 0; i < sus.measure + 1; i++) {
     measureLine.ele('line', {
       stroke: '#FFFFFF',
@@ -183,7 +222,7 @@ export async function getSVG(rawSus: string) {
   }
 
   // 拍線描画
-  const beatLine = base.ele('g', { id: 'beat_line' })
+  const beatLine = base.ele('g', { id: 'beatLine' })
   sus.BEATs.forEach((beat, index) => {
     for (let i = 0; i < beat; i++) {
       beatLine.ele('line', {
@@ -197,10 +236,10 @@ export async function getSVG(rawSus: string) {
     }
   })
 
+  const long = score.ele('g', { id: 'long' })
   const notes = score.ele('g', { id: 'notes' })
 
-  // HOLD SLIDE ベース
-  const long = notes.ele('g', { id: 'long' })
+  // HOLD/SLIDE ベース
   const longBase = long.ele('g', { id: 'longBase' })
   const longBaseHold = longBase.ele('g', { id: 'longBaseHold' })
   const longBaseSlide = longBase.ele('g', { id: 'longBaseSlide' })
@@ -214,11 +253,52 @@ export async function getSVG(rawSus: string) {
   )
 
   // SLIDE 線
-  const longLine = long.ele('g', { id: 'long_line' })
+  const longLine = long.ele('g', { id: 'longLine' })
 
   drawLongLine(sus.slideNotes, height).forEach(d =>
     longLine.ele('path', { d, fill: '#4CD5FF' })
   )
+
+  // HOLD/SLIDE ノーツ
+  const longNotes = long.ele('g', { id: 'longNotes' })
+  const longNotesHold = longNotes.ele('g', { id: 'longNotesHold' })
+  const longNotesSlide = longNotes.ele('g', { id: 'longNotesSlide' })
+
+  drawLongNotes(sus.holdNotes, height).forEach(d => longNotesHold.ele(d))
+  drawLongNotes(sus.slideNotes, height).forEach(d => longNotesSlide.ele(d))
+
+  // 地を這うTAP系
+  const shortNotes = notes.ele('g', { id: 'shortNotes' })
+
+  drawShortNotes(sus.shortNotes, height).forEach(d => shortNotes.ele(d))
+
+  // AIRノーツ/地面付き
+  const air = score.ele('g', { id: 'air' })
+  const airNotes = air.ele('g', { id: 'airNotes' })
+  const airGround = air.ele('g', { id: 'airGround' })
+
+  drawAirNotes(sus.airNotes, height).forEach(d => airNotes.ele(d))
+  drawAirGround(
+    sus.shortNotes,
+    sus.holdNotes,
+    sus.slideNotes,
+    sus.airNotes,
+    height
+  ).forEach(d => airGround.ele(d))
+
+  // AIR ACTION 線
+  const airActionLines = air.ele('g', { id: 'airActionLines' })
+  drawLongLine(sus.airActionNotes, height).forEach(d =>
+    airActionLines.ele('path', {
+      d,
+      fill: '#4CFF51',
+      style: 'fill-opacity: 0.7'
+    })
+  )
+
+  // AIR ACTION ノーツ
+  const airActionNotes = air.ele('g', { id: 'airActionNotes' })
+  drawLongNotes(sus.airActionNotes, height).forEach(d => airActionNotes.ele(d))
 
   return svg.end({
     allowEmpty: false,
@@ -236,7 +316,7 @@ function drawLongBase(laneNotes: ISusNotes[][], height: number): string[] {
     const colorBlocks = longNotes.reduce(
       (list, note) => {
         list[list.length - 1].push({ ...note })
-        if (note.noteType !== NoteType.RELAY) {
+        if (note.noteType !== LongNoteType.STEP) {
           return list
         }
         list.push([])
@@ -249,12 +329,14 @@ function drawLongBase(laneNotes: ISusNotes[][], height: number): string[] {
     colorBlocks.forEach(colorBlock => {
       // ノーツがある場合ベースの位置を8pxずらす
       if (
-        [NoteType.START, NoteType.RELAY].indexOf(colorBlock[0].noteType) > -1
+        [LongNoteType.START, LongNoteType.STEP].indexOf(
+          colorBlock[0].noteType
+        ) > -1
       ) {
         colorBlock[0].tick += 8
       }
       if (
-        [NoteType.END, NoteType.RELAY].indexOf(
+        [LongNoteType.END, LongNoteType.STEP].indexOf(
           colorBlock[colorBlock.length - 1].noteType
         ) > -1
       ) {
@@ -265,7 +347,7 @@ function drawLongBase(laneNotes: ISusNotes[][], height: number): string[] {
       const bases = colorBlock.reduce(
         (list, note) => {
           list[list.length - 1].push({ ...note })
-          if (note.noteType !== NoteType.INV_RELAY) {
+          if (note.noteType !== LongNoteType.ISTEP) {
             return list
           }
           list.push([])
@@ -279,7 +361,7 @@ function drawLongBase(laneNotes: ISusNotes[][], height: number): string[] {
         (list, notes) => {
           if (
             notes.length > 2 &&
-            notes.some(n => n.noteType === NoteType.INFLECTION)
+            notes.some(n => n.noteType === LongNoteType.CTRL)
           ) {
             // ベジェ
             const n1 = notes.map(n => [
@@ -333,7 +415,7 @@ function drawLongLine(laneNotes: ISusNotes[][], height: number): string[] {
     const colorBlocks = longNotes.reduce(
       (list, note) => {
         list[list.length - 1].push({ ...note })
-        if (note.noteType !== NoteType.RELAY) {
+        if (note.noteType !== LongNoteType.STEP) {
           return list
         }
         list.push([])
@@ -346,12 +428,14 @@ function drawLongLine(laneNotes: ISusNotes[][], height: number): string[] {
     colorBlocks.forEach(colorBlock => {
       // ノーツがある場合ベースの位置を8pxずらす
       if (
-        [NoteType.START, NoteType.RELAY].indexOf(colorBlock[0].noteType) > -1
+        [LongNoteType.START, LongNoteType.STEP].indexOf(
+          colorBlock[0].noteType
+        ) > -1
       ) {
         colorBlock[0].tick += 8
       }
       if (
-        [NoteType.END, NoteType.RELAY].indexOf(
+        [LongNoteType.END, LongNoteType.STEP].indexOf(
           colorBlock[colorBlock.length - 1].noteType
         ) > -1
       ) {
@@ -362,7 +446,7 @@ function drawLongLine(laneNotes: ISusNotes[][], height: number): string[] {
       const bases = colorBlock.reduce(
         (list, note) => {
           list[list.length - 1].push({ ...note })
-          if (note.noteType !== NoteType.INV_RELAY) {
+          if (note.noteType !== LongNoteType.ISTEP) {
             return list
           }
           list.push([])
@@ -418,24 +502,201 @@ function drawLongLine(laneNotes: ISusNotes[][], height: number): string[] {
   return d
 }
 
-// function drawNotes(parent, x, y, width, color, line) {
-//   const notes = parent.ele('g', { class: 'notes' })
-//   notes.ele('rect', {
-//     x: x + 2,
-//     y: y - 16,
-//     rx: '4px',
-//     ry: '4px',
-//     width: `${width * 16 - 4}px`,
-//     height: '16px',
-//     fill: color,
-//     stroke: '#FFFFFF',
-//     'stroke-width': '3px'
-//   })
-//   if (line) {
-//     notes.ele('path', {
-//       d: `M${x + 8},${y - 8} L${x + width * 16 - 8},${y - 8}`,
-//       stroke: '#FFFFFF',
-//       'stroke-width': '3px'
-//     })
-//   }
-// }
+function drawLongNotes(longNotes: ISusNotes[][], height: number): INote[] {
+  const d: INote[] = []
+
+  longNotes.forEach(notes => {
+    notes
+      .filter(note => {
+        if (note.laneType === 4) {
+          return (
+            [LongNoteType.END, LongNoteType.STEP].indexOf(note.noteType) > -1
+          )
+        } else {
+          return (
+            [LongNoteType.CTRL, LongNoteType.ISTEP].indexOf(note.noteType) < 0
+          )
+        }
+      }) // 不可視ノーツでない
+      .forEach(note => {
+        const xPos = note.lane * 16 + 8
+        const yPos = height - (note.measure * 768 + note.tick)
+        d.push(
+          getNotes(
+            xPos,
+            yPos,
+            note.width,
+            `${LongColor.get(note.laneType)}`,
+            note.noteType === 1
+          )
+        )
+      })
+  })
+
+  return d
+}
+
+function drawShortNotes(shortNotes: ISusNotes[], height: number): INote[] {
+  return shortNotes.map(note =>
+    getNotes(
+      note.lane * 16 + 8,
+      height - (note.measure * 768 + note.tick),
+      note.width,
+      ShortColor.get(note.noteType) as string,
+      true
+    )
+  )
+}
+
+const AirUp = [
+  AirNoteType.U,
+  AirNoteType.U_L,
+  AirNoteType.U_R,
+  AirNoteType.U_G,
+  AirNoteType.U_G_L,
+  AirNoteType.U_G_R
+]
+
+function getVector(type: number) {
+  switch (type) {
+    case AirNoteType.U:
+    case AirNoteType.D:
+    case AirNoteType.U_G:
+      return 0
+    case AirNoteType.U_R:
+    case AirNoteType.D_R:
+    case AirNoteType.U_G_R:
+      return 8
+    case AirNoteType.U_L:
+    case AirNoteType.D_L:
+    case AirNoteType.U_G_L:
+      return -8
+    default:
+      return 0
+  }
+}
+
+function drawAirNotes(airNotes: ISusNotes[], height: number): IAir[] {
+  const d: IAir[] = []
+
+  airNotes.forEach(note => {
+    const xPos = note.lane * 16 + 8
+    const yPos = height - (note.measure * 768 + note.tick)
+
+    const topY = yPos - 40
+    const btmY = topY + 16
+    const togari = 8
+    const vector = getVector(note.noteType)
+
+    if (AirUp.indexOf(note.noteType) > -1) {
+      d.push({
+        path: {
+          '@d': `M${xPos + 8 + vector},${topY} L${xPos +
+            note.width * 8 +
+            vector},${topY - togari} L${xPos -
+            8 +
+            note.width * 16 +
+            vector},${topY} L${xPos - 8 + note.width * 16},${btmY} L${xPos +
+            note.width * 8 +
+            vector / 2},${btmY - togari} L${xPos + 8},${btmY} z`,
+          '@fill': `${
+            AirUp.indexOf(note.noteType) > -1 ? '#77FF33' : '#FF55FF'
+          }`,
+          '@stroke': '#FFFFFF',
+          '@stroke-width': '2px'
+        }
+      })
+    } else {
+      d.push({
+        path: {
+          '@d': `M${xPos + 8 + vector},${topY - togari} L${xPos +
+            note.width * 8 +
+            vector},${topY} L${xPos - 8 + note.width * 16 + vector},${topY -
+            togari} L${xPos - 8 + note.width * 16 + vector / 2},${btmY -
+            togari} L${xPos + note.width * 8},${btmY} L${xPos +
+            8 +
+            vector / 2},${btmY - togari} z`,
+          '@fill': `${
+            AirUp.indexOf(note.noteType) > -1 ? '#77FF33' : '#FF55FF'
+          }`,
+          '@stroke': '#FFFFFF',
+          '@stroke-width': '2px'
+        }
+      })
+    }
+  })
+  return d
+}
+
+function drawAirGround(
+  shortNotes: ISusNotes[],
+  holdNotes: ISusNotes[][],
+  slideNotes: ISusNotes[][],
+  airNotes: ISusNotes[],
+  height: number
+) {
+  const d: INote[] = []
+  airNotes.forEach(note => {
+    const xPos = note.lane * 16 + 8
+    const yPos = height - (note.measure * 768 + note.tick)
+
+    const short = shortNotes
+      .filter(n => n.lane === note.lane)
+      .filter(n => n.measure === note.measure)
+      .filter(n => n.tick === note.tick)
+      .filter(n => n.width === note.width).length
+
+    const long = holdNotes
+      .concat(slideNotes)
+      .reduce((list, l) => list.concat(l), [])
+      .filter(n => n.noteType === LongNoteType.END)
+      .filter(n => n.lane === note.lane)
+      .filter(n => n.measure === note.measure)
+      .filter(n => n.tick === note.tick)
+      .filter(n => n.width === note.width).length
+
+    if (
+      [AirNoteType.U_G, AirNoteType.U_G_L, AirNoteType.U_G_R].indexOf(
+        note.noteType
+      ) > -1 ||
+      0 < long ||
+      0 === short
+    ) {
+      d.push(getNotes(xPos, yPos, note.width, '#77FF33', false))
+    }
+  })
+  return d
+}
+
+function getNotes(
+  x: number,
+  y: number,
+  width: number,
+  color: string,
+  line: boolean
+): INote {
+  const d: INote = {
+    g: {
+      '@class': 'notes',
+      rect: {
+        '@fill': color,
+        '@height': '16px',
+        '@rx': '4px',
+        '@ry': '4px',
+        '@stroke': '#FFFFFF',
+        '@stroke-width': '3px',
+        '@width': `${width * 16 - 4}px`,
+        '@x': x + 2,
+        '@y': y - 16
+      }
+    }
+  }
+  if (line) {
+    d.g.path = {
+      '@d': `M${x + 8},${y - 8} L${x + width * 16 - 8},${y - 8}`,
+      '@stroke': '#FFFFFF',
+      '@stroke-width': '3px'
+    }
+  }
+  return d
+}
