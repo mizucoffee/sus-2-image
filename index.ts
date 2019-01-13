@@ -2,7 +2,6 @@ import { convert } from 'convert-svg-to-png'
 import * as sharp from 'sharp'
 import * as bezier from 'simple-bezier'
 import * as SusAnalyzer from 'sus-analyzer'
-import { ISusNotes } from 'sus-analyzer'
 import * as builder from 'xmlbuilder'
 
 enum LongNoteType {
@@ -23,6 +22,11 @@ enum AirNoteType {
   U_G = 7,
   U_G_L = 8,
   U_G_R = 9
+}
+
+interface ISusNotesAbs extends SusAnalyzer.ISusNotes {
+  absY: number
+  absMeasure: number
 }
 
 interface ILongPoint {
@@ -103,7 +107,18 @@ export async function getPNGs(rawSus: string) {
 
 export async function getSVG(rawSus: string) {
   const sus = SusAnalyzer.getScore(rawSus)
-  const height = 768 * sus.measure + 32
+
+  const absMeasure: number[] = []
+  let prev = 0
+  for (let i = 0; i <= sus.measure; i++) {
+    let abs = prev + 192 * sus.BEATs[i - 1] * (sus.BPMs[0] / sus.BPMs[i - 1])
+    if (i === 0) {
+      abs = 0
+    }
+    absMeasure.push(abs)
+    prev = abs
+  }
+  const height = absMeasure[absMeasure.length - 1] + 32
 
   const svg = builder.begin().ele('svg', {
     height: `${height}px`,
@@ -164,24 +179,6 @@ export async function getSVG(rawSus: string) {
     })
     .up()
 
-  sus.shortNotes = sus.shortNotes.map(note => ({
-    ...note,
-    tick: note.tick + 8
-  }))
-  sus.holdNotes = sus.holdNotes.map(ln =>
-    ln.map(note => ({ ...note, tick: note.tick + 8 }))
-  )
-  sus.slideNotes = sus.slideNotes.map(ln =>
-    ln.map(note => ({ ...note, tick: note.tick + 8 }))
-  )
-  sus.airActionNotes = sus.airActionNotes.map(ln =>
-    ln.map(note => ({ ...note, tick: note.tick + 8 }))
-  )
-  sus.airNotes = sus.airNotes.map(note => ({
-    ...note,
-    tick: note.tick + 8
-  }))
-
   const score = svg.ele('g', { id: 'score' })
   const base = score.ele('g', { id: 'base' })
 
@@ -210,31 +207,68 @@ export async function getSVG(rawSus: string) {
 
   // 小節線描画
   const measureLine = base.ele('g', { id: 'measureLine' })
-  for (let i = 0; i < sus.measure + 1; i++) {
+  for (let i = 0; i <= sus.measure; i++) {
     measureLine.ele('line', {
       stroke: '#FFFFFF',
       'stroke-width': '2px',
       x1: `0px`,
       x2: `272px`,
-      y1: `${height - (i * 768 + 16)}px`,
-      y2: `${height - (i * 768 + 16)}px`
+      y1: `${height - absMeasure[i] - 16}px`,
+      y2: `${height - absMeasure[i] - 16}px`
     })
   }
 
   // 拍線描画
   const beatLine = base.ele('g', { id: 'beatLine' })
-  sus.BEATs.forEach((beat, index) => {
+  sus.BEATs.forEach((beat, mea) => {
     for (let i = 0; i < beat; i++) {
       beatLine.ele('line', {
         stroke: '#FFFFFF',
         'stroke-width': '1px',
         x1: `0px`,
         x2: `272px`,
-        y1: `${height - (768 * index + (768 / beat) * i + 16)}px`,
-        y2: `${height - (768 * index + (768 / beat) * i + 16)}px`
+        y1: `${height -
+          (absMeasure[mea] +
+            ((192 * sus.BEATs[mea] * (sus.BPMs[0] / sus.BPMs[mea])) / beat) *
+              i +
+            16)}px`,
+        y2: `${height -
+          (absMeasure[mea] +
+            ((192 * sus.BEATs[mea] * (sus.BPMs[0] / sus.BPMs[mea])) / beat) *
+              i +
+            16)}px`
       })
     }
   })
+
+  const shortAbs = (note: SusAnalyzer.ISusNotes) => ({
+    absMeasure: absMeasure[note.measure],
+    absY:
+      height -
+      (absMeasure[note.measure] +
+        note.tick * (sus.BPMs[0] / sus.BPMs[note.measure])) -
+      8,
+    ...note,
+    tick: note.tick + 8
+  })
+
+  const longAbs = (ln: SusAnalyzer.ISusNotes[]) =>
+    ln.map(note => ({
+      absMeasure: absMeasure[note.measure],
+      absY:
+        height -
+        (absMeasure[note.measure] +
+          note.tick * (sus.BPMs[0] / sus.BPMs[note.measure])) -
+        8,
+      ...note,
+      tick: note.tick + 8
+    }))
+
+  const short: ISusNotesAbs[] = sus.shortNotes.map(shortAbs)
+  const hold: ISusNotesAbs[][] = sus.holdNotes.map(longAbs)
+  const slide: ISusNotesAbs[][] = sus.slideNotes.map(longAbs)
+  const airAction: ISusNotesAbs[][] = sus.airActionNotes.map(longAbs)
+  const airN: ISusNotesAbs[] = sus.airNotes.map(shortAbs)
 
   const long = score.ele('g', { id: 'long' })
   const notes = score.ele('g', { id: 'notes' })
@@ -243,52 +277,38 @@ export async function getSVG(rawSus: string) {
   const longBase = long.ele('g', { id: 'longBase' })
   const longBaseHold = longBase.ele('g', { id: 'longBaseHold' })
   const longBaseSlide = longBase.ele('g', { id: 'longBaseSlide' })
-
-  drawLongBase(sus.holdNotes, height).forEach(d =>
+  drawLongBase(hold).forEach(d =>
     longBaseHold.ele('path', { d, fill: 'url(#hold)' })
   )
-
-  drawLongBase(sus.slideNotes, height).forEach(d =>
+  drawLongBase(slide).forEach(d =>
     longBaseSlide.ele('path', { d, fill: 'url(#slide)' })
   )
 
   // SLIDE 線
   const longLine = long.ele('g', { id: 'longLine' })
-
-  drawLongLine(sus.slideNotes, height).forEach(d =>
-    longLine.ele('path', { d, fill: '#4CD5FF' })
-  )
+  drawLongLine(slide).forEach(d => longLine.ele('path', { d, fill: '#4CD5FF' }))
 
   // HOLD/SLIDE ノーツ
   const longNotes = long.ele('g', { id: 'longNotes' })
   const longNotesHold = longNotes.ele('g', { id: 'longNotesHold' })
   const longNotesSlide = longNotes.ele('g', { id: 'longNotesSlide' })
-
-  drawLongNotes(sus.holdNotes, height).forEach(d => longNotesHold.ele(d))
-  drawLongNotes(sus.slideNotes, height).forEach(d => longNotesSlide.ele(d))
+  drawLongNotes(hold).forEach(d => longNotesHold.ele(d))
+  drawLongNotes(slide).forEach(d => longNotesSlide.ele(d))
 
   // 地を這うTAP系
   const shortNotes = notes.ele('g', { id: 'shortNotes' })
-
-  drawShortNotes(sus.shortNotes, height).forEach(d => shortNotes.ele(d))
+  drawShortNotes(short).forEach(d => shortNotes.ele(d))
 
   // AIRノーツ/地面付き
   const air = score.ele('g', { id: 'air' })
   const airNotes = air.ele('g', { id: 'airNotes' })
   const airGround = air.ele('g', { id: 'airGround' })
-
-  drawAirNotes(sus.airNotes, height).forEach(d => airNotes.ele(d))
-  drawAirGround(
-    sus.shortNotes,
-    sus.holdNotes,
-    sus.slideNotes,
-    sus.airNotes,
-    height
-  ).forEach(d => airGround.ele(d))
+  drawAirNotes(airN).forEach(d => airNotes.ele(d))
+  drawAirGround(short, hold, slide, airN).forEach(d => airGround.ele(d))
 
   // AIR ACTION 線
   const airActionLines = air.ele('g', { id: 'airActionLines' })
-  drawLongLine(sus.airActionNotes, height).forEach(d =>
+  drawLongLine(airAction).forEach(d =>
     airActionLines.ele('path', {
       d,
       fill: '#4CFF51',
@@ -298,7 +318,7 @@ export async function getSVG(rawSus: string) {
 
   // AIR ACTION ノーツ
   const airActionNotes = air.ele('g', { id: 'airActionNotes' })
-  drawLongNotes(sus.airActionNotes, height).forEach(d => airActionNotes.ele(d))
+  drawLongNotes(airAction).forEach(d => airActionNotes.ele(d))
 
   return svg.end({
     allowEmpty: false,
@@ -309,7 +329,7 @@ export async function getSVG(rawSus: string) {
   })
 }
 
-function drawLongBase(laneNotes: ISusNotes[][], height: number): string[] {
+function drawLongBase(laneNotes: ISusNotesAbs[][]): string[] {
   const d: string[] = []
   laneNotes.forEach(longNotes => {
     // 可視中継点で分割（色分けの為）
@@ -323,7 +343,7 @@ function drawLongBase(laneNotes: ISusNotes[][], height: number): string[] {
         list[list.length - 1].push({ ...note })
         return list
       },
-      [[]] as ISusNotes[][]
+      [[]] as ISusNotesAbs[][]
     )
 
     colorBlocks.forEach(colorBlock => {
@@ -333,14 +353,14 @@ function drawLongBase(laneNotes: ISusNotes[][], height: number): string[] {
           colorBlock[0].noteType
         ) > -1
       ) {
-        colorBlock[0].tick += 8
+        colorBlock[0].absY -= 8
       }
       if (
         [LongNoteType.END, LongNoteType.STEP].indexOf(
           colorBlock[colorBlock.length - 1].noteType
         ) > -1
       ) {
-        colorBlock[colorBlock.length - 1].tick -= 8
+        colorBlock[colorBlock.length - 1].absY += 8
       }
 
       // 不可視中継点で分割（ベジェ判定の為）
@@ -354,7 +374,7 @@ function drawLongBase(laneNotes: ISusNotes[][], height: number): string[] {
           list[list.length - 1].push({ ...note })
           return list
         },
-        [[]] as ISusNotes[][]
+        [[]] as ISusNotesAbs[][]
       )
 
       const points = bases.reduce(
@@ -364,31 +384,28 @@ function drawLongBase(laneNotes: ISusNotes[][], height: number): string[] {
             notes.some(n => n.noteType === LongNoteType.CTRL)
           ) {
             // ベジェ
-            const n1 = notes.map(n => [
-              n.lane * 16 + 8 + 4,
-              n.measure * 768 + n.tick + 8
-            ])
+            const n1 = notes.map(n => [n.lane * 16 + 8 + 4, n.absY - 8])
             const n2 = notes.map(n => [
               n.lane * 16 + 8 + n.width * 16 - 4,
-              n.measure * 768 + n.tick + 8
+              n.absY - 8
             ])
 
             bezier(n1, 100).forEach((c: number[]) =>
-              list[0].push({ x: c[0], y: height - c[1] })
+              list[0].push({ x: c[0], y: c[1] })
             )
             bezier(n2, 100).forEach((c: number[]) =>
-              list[1].push({ x: c[0], y: height - c[1] })
+              list[1].push({ x: c[0], y: c[1] })
             )
           } else {
             // 直線
             notes.forEach(note => {
               list[0].push({
                 x: note.lane * 16 + 8 + 4,
-                y: height - (note.measure * 768 + note.tick + 8)
+                y: note.absY - 8
               })
               list[1].push({
                 x: note.lane * 16 + 8 + note.width * 16 - 4,
-                y: height - (note.measure * 768 + note.tick + 8)
+                y: note.absY - 8
               })
             })
           }
@@ -408,7 +425,7 @@ function drawLongBase(laneNotes: ISusNotes[][], height: number): string[] {
   return d
 }
 
-function drawLongLine(laneNotes: ISusNotes[][], height: number): string[] {
+function drawLongLine(laneNotes: ISusNotesAbs[][]): string[] {
   const d: string[] = []
   laneNotes.forEach(longNotes => {
     // 可視中継点で分割（色分けの為）
@@ -422,7 +439,7 @@ function drawLongLine(laneNotes: ISusNotes[][], height: number): string[] {
         list[list.length - 1].push({ ...note })
         return list
       },
-      [[]] as ISusNotes[][]
+      [[]] as ISusNotesAbs[][]
     )
 
     colorBlocks.forEach(colorBlock => {
@@ -432,14 +449,14 @@ function drawLongLine(laneNotes: ISusNotes[][], height: number): string[] {
           colorBlock[0].noteType
         ) > -1
       ) {
-        colorBlock[0].tick += 8
+        colorBlock[0].absY -= 8
       }
       if (
         [LongNoteType.END, LongNoteType.STEP].indexOf(
           colorBlock[colorBlock.length - 1].noteType
         ) > -1
       ) {
-        colorBlock[colorBlock.length - 1].tick -= 8
+        colorBlock[colorBlock.length - 1].absY += 8
       }
 
       // 不可視中継点で分割（ベジェ判定の為）
@@ -453,7 +470,7 @@ function drawLongLine(laneNotes: ISusNotes[][], height: number): string[] {
           list[list.length - 1].push({ ...note })
           return list
         },
-        [[]] as ISusNotes[][]
+        [[]] as ISusNotesAbs[][]
       )
 
       const points = bases.reduce(
@@ -462,27 +479,27 @@ function drawLongLine(laneNotes: ISusNotes[][], height: number): string[] {
             // ベジェ
             const n1 = notes.map(n => [
               n.lane * 16 + 8 + (n.width * 16) / 2 - 3,
-              n.measure * 768 + n.tick + 8
+              n.absY - 8
             ])
             const n2 = notes.map(n => [
               n.lane * 16 + 8 + (n.width * 16) / 2 + 3,
-              n.measure * 768 + n.tick + 8
+              n.absY - 8
             ])
 
             const b1: number[][] = bezier(n1, 100)
             const b2: number[][] = bezier(n2, 100)
-            b1.forEach(c => list[0].push({ x: c[0], y: height - c[1] }))
-            b2.forEach(c => list[1].push({ x: c[0], y: height - c[1] }))
+            b1.forEach(c => list[0].push({ x: c[0], y: c[1] }))
+            b2.forEach(c => list[1].push({ x: c[0], y: c[1] }))
           } else {
             // 直線
             notes.forEach(note => {
               list[0].push({
                 x: note.lane * 16 + 8 + (note.width * 16) / 2 - 3,
-                y: height - (note.measure * 768 + note.tick + 8)
+                y: note.absY - 8
               })
               list[1].push({
                 x: note.lane * 16 + 8 + (note.width * 16) / 2 + 3,
-                y: height - (note.measure * 768 + note.tick + 8)
+                y: note.absY - 8
               })
             })
           }
@@ -502,7 +519,7 @@ function drawLongLine(laneNotes: ISusNotes[][], height: number): string[] {
   return d
 }
 
-function drawLongNotes(longNotes: ISusNotes[][], height: number): INote[] {
+function drawLongNotes(longNotes: ISusNotesAbs[][]): INote[] {
   const d: INote[] = []
 
   longNotes.forEach(notes => {
@@ -520,11 +537,10 @@ function drawLongNotes(longNotes: ISusNotes[][], height: number): INote[] {
       }) // 不可視ノーツでない
       .forEach(note => {
         const xPos = note.lane * 16 + 8
-        const yPos = height - (note.measure * 768 + note.tick)
         d.push(
           getNotes(
             xPos,
-            yPos,
+            note.absY,
             note.width,
             `${LongColor.get(note.laneType)}`,
             note.noteType === 1
@@ -536,11 +552,11 @@ function drawLongNotes(longNotes: ISusNotes[][], height: number): INote[] {
   return d
 }
 
-function drawShortNotes(shortNotes: ISusNotes[], height: number): INote[] {
+function drawShortNotes(shortNotes: ISusNotesAbs[]): INote[] {
   return shortNotes.map(note =>
     getNotes(
       note.lane * 16 + 8,
-      height - (note.measure * 768 + note.tick),
+      note.absY,
       note.width,
       ShortColor.get(note.noteType) as string,
       true
@@ -576,14 +592,13 @@ function getVector(type: number) {
   }
 }
 
-function drawAirNotes(airNotes: ISusNotes[], height: number): IAir[] {
+function drawAirNotes(airNotes: ISusNotesAbs[]): IAir[] {
   const d: IAir[] = []
 
   airNotes.forEach(note => {
     const xPos = note.lane * 16 + 8
-    const yPos = height - (note.measure * 768 + note.tick)
 
-    const topY = yPos - 40
+    const topY = note.absY - 40
     const btmY = topY + 16
     const togari = 8
     const vector = getVector(note.noteType)
@@ -629,16 +644,14 @@ function drawAirNotes(airNotes: ISusNotes[], height: number): IAir[] {
 }
 
 function drawAirGround(
-  shortNotes: ISusNotes[],
-  holdNotes: ISusNotes[][],
-  slideNotes: ISusNotes[][],
-  airNotes: ISusNotes[],
-  height: number
+  shortNotes: ISusNotesAbs[],
+  holdNotes: ISusNotesAbs[][],
+  slideNotes: ISusNotesAbs[][],
+  airNotes: ISusNotesAbs[]
 ) {
   const d: INote[] = []
   airNotes.forEach(note => {
     const xPos = note.lane * 16 + 8
-    const yPos = height - (note.measure * 768 + note.tick)
 
     const short = shortNotes
       .filter(n => n.lane === note.lane)
@@ -662,7 +675,7 @@ function drawAirGround(
       0 < long ||
       0 === short
     ) {
-      d.push(getNotes(xPos, yPos, note.width, '#77FF33', false))
+      d.push(getNotes(xPos, note.absY, note.width, '#77FF33', false))
     }
   })
   return d
