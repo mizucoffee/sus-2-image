@@ -12,7 +12,8 @@
     "removeComments": true,
     "sourceMap": true,
     "typeRoots": ["./typing"],
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "declaration": true
   },
   "exclude": [
     "node_modules"
