@@ -1,9 +1,9 @@
 {
   "name": "sus-2-image",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "repository": "https://github.com/KawakawaRitsuki/sus-2-image.git",
+  "repository": "https://github.com/mizucoffee/sus-2-image.git",
   "author": "Ritsuki Goto <develop@mizucoffee.net>",
   "license": "MIT",
   "private": false,
@@ -15,7 +15,7 @@
     "@types/xmlbuilder": "^0.0.34",
     "convert-svg-to-png": "^0.5.0",
     "sharp": "^0.21.0",
-    "simple-bezier": "mizucoffee/simple-bezier",
+    "simple-bezier": "^1.0.4",
     "sus-analyzer": "^2.2.1",
     "xmlbuilder": "^10.1.1"
   },

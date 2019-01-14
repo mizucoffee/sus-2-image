@@ -94,14 +94,35 @@ export async function getPNGs(rawSus: string) {
   if (meta.height == null) {
     return null
   }
-  const m = Math.round((meta.height - 16) / 768)
+  const m = Math.floor(meta.height / 768)
   for (let i = 0; i < m; i++) {
     process.push(
       image
-        .extract({ left: 0, top: i * 768 + 32, width: 272, height: 768 })
+        .extract({
+          height: 768,
+          left: 0,
+          top: meta.height - (i + 1) * 768,
+          width: 272
+        })
         .toBuffer()
     )
   }
+  process.push(
+    image
+      .extract({
+        height: meta.height % 768,
+        left: 0,
+        top: 0,
+        width: 272
+      })
+      .extend({
+        bottom: 0,
+        left: 0,
+        right: 0,
+        top: 768 - (meta.height % 768)
+      })
+      .toBuffer()
+  )
   return await Promise.all(process)
 }
 

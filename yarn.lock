@@ -1175,9 +1175,10 @@ signal-exit@^3.0.0:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
 
-simple-bezier@mizucoffee/simple-bezier:
+simple-bezier@^1.0.4:
   version "1.0.4"
-  resolved "https://codeload.github.com/mizucoffee/simple-bezier/tar.gz/9984db2f7e5f46bf059df5ad9148e61bcab638a7"
+  resolved "https://registry.yarnpkg.com/simple-bezier/-/simple-bezier-1.0.4.tgz#0de3c6fa5e99e9b5cc336fa97098472bc117752c"
+  integrity sha512-nVVa2CnWvOgRxzmFT/gmMW7NC6SrN42lHkpyiTB78G78Ockm8lOlfyNjLPPxJWdqgp5y1AbY3F9vY2O3VYB02Q==
 
 simple-concat@^1.0.0:
   version "1.0.0"

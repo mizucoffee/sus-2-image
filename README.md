@@ -14,12 +14,6 @@ SeaUrchinScore to Image for node
 $ yarn add sus-2-image
 ```
 
-or
-
-```
-$ npm i sus-2-image
-```
-
 ## How to use
 
 ```js
@@ -28,9 +22,17 @@ const fs = require('fs')
 
 const sus = fs.readFileSync('example.sus','utf8')
 
-const image  = Sus2Image.getImage(sus)
-const images = Sus2Image.getImages(sus)
+Sus2Image.getSVG(sus).then(image => {
+  fs.writeFileSync(`score.svg` , image)
+})
 
-fs.writeFileSync(`score_all.svg` , image)
-images.forEach((img,index) => fs.writeFileSync(`score_${index}.svg`, img))
+Sus2Image.getPNG(sus).then(image => {
+  fs.writeFileSync(`score.png` , image)
+})
+
+Sus2Image.getPNGs(sus).then(images => {
+  images.forEach((image, index) => {
+    fs.writeFileSync(`score_${index}.png` , image)
+  })
+})
 ```
