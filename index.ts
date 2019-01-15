@@ -144,7 +144,7 @@ export async function getSVG(rawSus: string) {
   const svg = builder.begin().ele('svg', {
     height: `${height}px`,
     version: '1.1',
-    width: '272px',
+    width: '400px',
     xmlns: 'http://www.w3.org/2000/svg'
   })
   svg
@@ -209,7 +209,7 @@ export async function getSVG(rawSus: string) {
     height: `${height}px`,
     id: 'base_black',
     width: '272px',
-    x: '0',
+    x: '128',
     y: '0'
   })
 
@@ -219,8 +219,8 @@ export async function getSVG(rawSus: string) {
     laneLine.ele('line', {
       stroke: '#888888',
       'stroke-width': '1px',
-      x1: `${32 * i + 8}px`,
-      x2: `${32 * i + 8}px`,
+      x1: `${32 * i + 8 + 128}px`,
+      x2: `${32 * i + 8 + 128}px`,
       y1: '0px',
       y2: `${height}px`
     })
@@ -232,11 +232,34 @@ export async function getSVG(rawSus: string) {
     measureLine.ele('line', {
       stroke: '#FFFFFF',
       'stroke-width': '2px',
-      x1: `0px`,
-      x2: `272px`,
+      x1: `128px`,
+      x2: `400px`,
       y1: `${height - absMeasure[i] - 16}px`,
       y2: `${height - absMeasure[i] - 16}px`
     })
+  }
+
+  // 小節番号描画
+  const measureNumber = base.ele('g', { id: 'measureNumber' })
+  for (let i = 0; i <= sus.measure; i++) {
+    measureNumber.ele('line', {
+      stroke: '#000000',
+      'stroke-width': '4px',
+      x1: `16px`,
+      x2: `128px`,
+      y1: `${height - absMeasure[i] - 16}px`,
+      y2: `${height - absMeasure[i] - 16}px`
+    })
+    measureNumber.ele(
+      'text',
+      {
+        'font-family': 'sans-serif',
+        'font-size': '38pt',
+        x: `24px`,
+        y: `${height - absMeasure[i] - 16 - 16}px`
+      },
+      ('000' + (i + 1)).slice(-3)
+    )
   }
 
   // 拍線描画
@@ -246,8 +269,8 @@ export async function getSVG(rawSus: string) {
       beatLine.ele('line', {
         stroke: '#FFFFFF',
         'stroke-width': '1px',
-        x1: `0px`,
-        x2: `272px`,
+        x1: `128px`,
+        x2: `400px`,
         y1: `${height -
           (absMeasure[mea] +
             ((192 * sus.BEATs[mea] * (sus.BPMs[0] / sus.BPMs[mea])) / beat) *
@@ -437,8 +460,10 @@ function drawLongBase(laneNotes: ISusNotesAbs[][]): string[] {
 
       let data = 'M'
 
-      points[0].forEach(point => (data += `${point.x} ${point.y} L`))
-      points[1].reverse().forEach(point => (data += `${point.x} ${point.y} L`))
+      points[0].forEach(point => (data += `${point.x + 128} ${point.y} L`))
+      points[1]
+        .reverse()
+        .forEach(point => (data += `${point.x + 128} ${point.y} L`))
 
       d.push(data.slice(0, -1) + 'z')
     })
@@ -531,8 +556,10 @@ function drawLongLine(laneNotes: ISusNotesAbs[][]): string[] {
 
       let data = 'M'
 
-      points[0].forEach(point => (data += `${point.x} ${point.y} L`))
-      points[1].reverse().forEach(point => (data += `${point.x} ${point.y} L`))
+      points[0].forEach(point => (data += `${point.x + 128} ${point.y} L`))
+      points[1]
+        .reverse()
+        .forEach(point => (data += `${point.x + 128} ${point.y} L`))
 
       d.push(data.slice(0, -1) + 'z')
     })
@@ -617,7 +644,7 @@ function drawAirNotes(airNotes: ISusNotesAbs[]): IAir[] {
   const d: IAir[] = []
 
   airNotes.forEach(note => {
-    const xPos = note.lane * 16 + 8
+    const xPos = note.lane * 16 + 8 + 128
 
     const topY = note.absY - 40
     const btmY = topY + 16
@@ -720,14 +747,14 @@ function getNotes(
         '@stroke': '#FFFFFF',
         '@stroke-width': '3px',
         '@width': `${width * 16 - 4}px`,
-        '@x': x + 2,
+        '@x': x + 2 + 128,
         '@y': y - 16
       }
     }
   }
   if (line) {
     d.g.path = {
-      '@d': `M${x + 8},${y - 8} L${x + width * 16 - 8},${y - 8}`,
+      '@d': `M${x + 8 + 128},${y - 8} L${x + width * 16 - 8 + 128},${y - 8}`,
       '@stroke': '#FFFFFF',
       '@stroke-width': '3px'
     }
