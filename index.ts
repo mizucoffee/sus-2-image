@@ -241,7 +241,7 @@ export async function getSVG(rawSus: string) {
 
   // 小節番号描画
   const measureNumber = base.ele('g', { id: 'measureNumber' })
-  for (let i = 0; i <= sus.measure; i++) {
+  for (let i = 0; i < sus.measure; i++) {
     measureNumber.ele('line', {
       stroke: '#000000',
       'stroke-width': '4px',
