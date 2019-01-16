@@ -628,11 +628,11 @@ function getVector(type: number) {
     case AirNoteType.U_G:
       return 0
     case AirNoteType.U_R:
-    case AirNoteType.D_R:
+    case AirNoteType.D_L:
     case AirNoteType.U_G_R:
       return 8
     case AirNoteType.U_L:
-    case AirNoteType.D_L:
+    case AirNoteType.D_R:
     case AirNoteType.U_G_L:
       return -8
     default:
